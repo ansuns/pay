@@ -13,9 +13,9 @@ use Ansuns\Util\BasicPayInterface;
 class SandPay extends BasicPayInterface
 {
     protected $API_HOST;
-    protected $APUB_KEY_PATH;  //公钥文件
-    protected $APRI_KEY_PATH; //私钥文件
-    protected $ACERT_PWD; //私钥证书密码
+    protected $PUB_KEY_PATH;  //公钥文件
+    protected $PRI_KEY_PATH; //私钥文件
+    protected $CERT_PWD; //私钥证书密码
     public $PAY_URL = '/order/pay'; //
     public $QUERY_URL = '/order/query'; //
     public $REFUND_URL = '/order/refund'; //
@@ -25,9 +25,9 @@ class SandPay extends BasicPayInterface
     public function __construct(array $config)
     {
         $this->API_HOST = 'https://cashier.sandpay.com.cn/gateway/api';
-        $this->APUB_KEY_PATH = $config['apub_key_path'];
-        $this->APRI_KEY_PATH = $config['apri_key_path'];
-        $this->ACERT_PWD = $config['acert_pwd'];
+        $this->PUB_KEY_PATH = $config['pub_key_path'];
+        $this->PRI_KEY_PATH = $config['pri_key_path'];
+        $this->CERT_PWD = $config['cert_pwd'];
 
     }
 
@@ -195,7 +195,7 @@ class SandPay extends BasicPayInterface
     {
 
         // step2: 私钥签名
-        $prikey = loadPk12Cert($this->APRI_KEY_PATH, $this->ACERT_PWD);
+        $prikey = loadPk12Cert($this->PRI_KEY_PATH, $this->CERT_PWD);
         $sign = sign($data, $prikey);
 
         // step3: 拼接post数据
@@ -211,7 +211,7 @@ class SandPay extends BasicPayInterface
         $arr = parse_result($result);
 
         //step5: 公钥验签
-        $pubkey = loadX509Cert($this->APUB_KEY_PATH);
+        $pubkey = loadX509Cert($this->PUB_KEY_PATH);
         try {
             verify($arr['data'], $arr['sign'], $pubkey);
         } catch (\Exception $e) {
