@@ -8,6 +8,7 @@
 
 namespace Ansuns;
 
+use Ansuns\Util\BasicPayInterface;
 
 class SandPay extends BasicPayInterface
 {

@@ -6,7 +6,7 @@
  * Time: 11:46
  */
 
-namespace Ansuns;
+namespace Ansuns\Util;
 
 
 abstract class BasicPayInterface
