@@ -11,7 +11,10 @@
             "email": "251024883@qq.com"
         }
     ],
-    "psr-4": {
+    "keywords": [
+        "sandpay"
+    ],
+    "autoload": {
         "Ansuns\\": "src/"
     }
 }
