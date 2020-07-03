@@ -195,8 +195,8 @@ class SandPay extends BasicPayInterface
     {
 
         // step2: 私钥签名
-        $prikey =  $this->loadPk12Cert($this->PRI_KEY_PATH, $this->CERT_PWD);
-        $sign =  $this->sign($data, $prikey);
+        $prikey = $this->loadPk12Cert($this->PRI_KEY_PATH, $this->CERT_PWD);
+        $sign = $this->sign($data, $prikey);
 
         // step3: 拼接post数据
         $post = array(
@@ -207,7 +207,34 @@ class SandPay extends BasicPayInterface
         );
 
         // step4: post请求
-        $result = $this->post($this->API_HOST . $url, $post);
+        $param = $data;
+        if (empty($url) || empty($param)) {
+            return false;
+        }
+        $param = http_build_query($param);
+
+        try {
+
+            $ch = curl_init();//初始化curl
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            //正式环境时解开注释
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            $data = curl_exec($ch);//运行curl
+            $result = curl_close($ch);
+
+            if (!$data) {
+                throw new \Exception('请求出错');
+            }
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
+
         $arr = $this->parse_result($result);
 
         //step5: 公钥验签
@@ -227,32 +254,7 @@ class SandPay extends BasicPayInterface
             print_r($arr['data']);
         }
 
-        if (empty($url) || empty($param)) {
-            return false;
-        }
-        $param = http_build_query($param);
-        try {
-
-            $ch = curl_init();//初始化curl
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            //正式环境时解开注释
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            $data = curl_exec($ch);//运行curl
-            curl_close($ch);
-
-            if (!$data) {
-                throw new \Exception('请求出错');
-            }
-
-            return $data;
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        return $credential;
     }
 
     /**
