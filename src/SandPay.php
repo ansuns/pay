@@ -195,8 +195,8 @@ class SandPay extends BasicPayInterface
     {
 
         // step2: 私钥签名
-        $prikey = loadPk12Cert($this->PRI_KEY_PATH, $this->CERT_PWD);
-        $sign = sign($data, $prikey);
+        $prikey =  $this->loadPk12Cert($this->PRI_KEY_PATH, $this->CERT_PWD);
+        $sign =  $this->sign($data, $prikey);
 
         // step3: 拼接post数据
         $post = array(
@@ -207,13 +207,13 @@ class SandPay extends BasicPayInterface
         );
 
         // step4: post请求
-        $result = http_post_json($this->API_HOST . $url, $post);
-        $arr = parse_result($result);
+        $result = $this->post($this->API_HOST . $url, $post);
+        $arr = $this->parse_result($result);
 
         //step5: 公钥验签
-        $pubkey = loadX509Cert($this->PUB_KEY_PATH);
+        $pubkey = $this->loadX509Cert($this->PUB_KEY_PATH);
         try {
-            verify($arr['data'], $arr['sign'], $pubkey);
+            $this->verify($arr['data'], $arr['sign'], $pubkey);
         } catch (\Exception $e) {
             echo $e->getMessage();
             exit;
