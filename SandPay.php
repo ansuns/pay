@@ -16,4 +16,9 @@ class SandPay
         echo "sucess";
     }
 
+    public static function hello()
+    {
+        echo "hello";
+    }
+
 }
