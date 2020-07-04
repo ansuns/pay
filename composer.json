@@ -1,9 +1,20 @@
 {
     "name": "ansuns/pay",
     "description": "支付包",
+    "type": "library",
+    "keywords": [
+        "支付",
+        "支付宝",
+        "微信支付",
+        "传化支付",
+        "随行付",
+        "杉德支付",
+        "联富通"
+    ],
     "require": {
         "php": "^7.2"
     },
+    "homepage": "https://github.com/ansuns/pay",
     "license": "MIT",
     "authors": [
         {
@@ -11,12 +22,8 @@
             "email": "251024883@qq.com"
         }
     ],
-    "keywords": [
-        "pay 杉德支付 支付包 微信 传化 随行付 联富通"
-    ],
+    "minimum-stability": "dev",
     "autoload": {
-      "psr-4": {
-        "Ansuns\\Pay\\": "src/"
-      }
+        "psr-4": { "Ansuns\\Pay\\" : "src/" }
     }
 }
