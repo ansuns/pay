@@ -79,7 +79,7 @@ class Bill extends Alipay
                     if (!is_dir($dir . '/' . substr($filename, 0, -1))) mkdir($dir . '/' . substr($filename, 0, -1), 0775, true);
                 } else {
                     //拷贝文件
-                    $file_name = tools()::array_iconv($filename);
+                    $file_name = ToolsService::array_iconv($filename);
                     $file_name = str_replace('业务明细', 'day', $file_name);
                     $file_name = str_replace('汇总', 'all', $file_name);
                     copy('zip://' . $zipName . '#' . $zip->getNameIndex($i), $dir . '/' . $file_name);
@@ -137,7 +137,7 @@ class Bill extends Alipay
         $result = $this->getResult($options, $this->getMethod());
         $bill_download_url = $result['bill_download_url'];
         $path = 'bill_alipay';
-        $unzip_path = tools()::get_absolute_path($path);
+        $unzip_path = ToolsService::get_absolute_path($path);
         $result = curl()->download_file($bill_download_url);
         $result = $this->extractZipToFile($result, $unzip_path);
         $bill_data = [];

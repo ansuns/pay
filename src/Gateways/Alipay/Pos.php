@@ -42,7 +42,7 @@ class Pos extends Alipay
         $options['scene'] = $scene;
         $options['subject'] = $options['body'];
         $total_fee = $options['total_fee'];
-        $options['total_amount'] = tools()::ncPriceFen2yuan($total_fee);
+        $options['total_amount'] = ToolsService::ncPriceFen2yuan($total_fee);
         unset($options['total_fee']);
         $result = $this->getResult($options, $this->getMethod());
         $result['time_end'] = date('YmdHis', strtotime($result['gmt_payment']));

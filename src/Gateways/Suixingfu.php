@@ -101,7 +101,7 @@ abstract class Suixingfu extends GatewayInterface
         $url = $this->gateway . $this->service;
         $header = ['Content-Type: application/json'];
         $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
-        if (!tools()::is_json($result)) {
+        if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
@@ -144,7 +144,7 @@ abstract class Suixingfu extends GatewayInterface
         $this->setReqData([
             'ordNo' => $options['out_refund_no'],
             'origOrderNo' => $options['out_trade_no'],
-            'amt' => tools()::ncPriceFen2yuan($options['refund_fee']),
+            'amt' => ToolsService::ncPriceFen2yuan($options['refund_fee']),
         ]);
         $data = $this->getResult();
         if ($this->isSuccess($data)) {
@@ -160,7 +160,7 @@ abstract class Suixingfu extends GatewayInterface
                 'out_trade_no' => $data['origOrderNo'],
                 'refund_id' => '',
                 'transaction_id' => '',
-                'refund_fee' => tools()::ncPriceYuan2fen($data['refundAmount']),  //元转分
+                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
                 'raw_data' => $data
             ];
             return $return;
@@ -192,7 +192,7 @@ abstract class Suixingfu extends GatewayInterface
                 'out_trade_no' => $out_trade_no,
                 'refund_id' => '',
                 'transaction_id' => '',
-                'refund_fee' => tools()::ncPriceYuan2fen($data['refundAmount']),  //元转分
+                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
                 'raw_data' => $data
             ];
             return $return;
@@ -250,11 +250,11 @@ abstract class Suixingfu extends GatewayInterface
             'is_subscribe' => '',
             'trade_type' => isset($data['payType']) ? $data['payType'] : '',
             'bank_type' => '',
-            'total_fee' => tools()::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
+            'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
             'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
             'out_trade_no' => isset($data['ordNo']) ? $data['ordNo'] : '',
             'attach' => '',
-            //'time_end'       => tools()::format_time($data['payTime']),
+            //'time_end'       => ToolsService::format_time($data['payTime']),
             'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
             'trade_state' => isset($data['tranSts']) ? $data['tranSts'] : $data['result_code'],
             'raw_data' => $data
@@ -356,11 +356,11 @@ abstract class Suixingfu extends GatewayInterface
                 'is_subscribe' => '',
                 'trade_type' => 'trade_type',
                 'bank_type' => '',
-                'total_fee' => tools()::ncPriceYuan2fen($data['amt']),  //分
+                'total_fee' => ToolsService::ncPriceYuan2fen($data['amt']),  //分
                 'transaction_id' => $data['transactionId'],
                 'out_trade_no' => $data['ordNo'],
                 'attach' => '',
-                //'time_end'       => tools()::format_time($data['payTime']),
+                //'time_end'       => ToolsService::format_time($data['payTime']),
                 'time_end' => $data['payTime'],
                 'trade_state' => ($data['bizMsg'] == '交易成功') ? 'SUCCESS' : 'FAIL',
                 'raw_data' => $data

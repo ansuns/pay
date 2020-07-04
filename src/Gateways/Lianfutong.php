@@ -77,7 +77,7 @@ abstract class Lianfutong extends GatewayInterface
         $this->service = "/refund";
         $this->config['outTradeNo'] = $options['out_trade_no'];
         $this->config['refundNo'] = $options['out_refund_no'];
-        $this->config['refundAmount'] = tools()::ncPriceFen2yuan($options['refund_fee']); //单位分转成元
+        $this->config['refundAmount'] = ToolsService::ncPriceFen2yuan($options['refund_fee']); //单位分转成元
         $this->config['merchantCode'] = $this->userConfig->get('merchant_no');
         $data = $this->getResult();
         if ($this->isSuccess($data)) {
@@ -93,7 +93,7 @@ abstract class Lianfutong extends GatewayInterface
                 'out_trade_no' => $data['outTradeNo'],
                 'refund_id' => '',
                 'transaction_id' => '',
-                'refund_fee' => tools()::ncPriceYuan2fen($data['refundAmount']),  //元转分
+                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
                 'raw_data' => $data
             ];
             return $return;
@@ -126,7 +126,7 @@ abstract class Lianfutong extends GatewayInterface
                 'out_trade_no' => $data['outTradeNo'],
                 'refund_id' => '',
                 'transaction_id' => '',
-                'refund_fee' => tools()::ncPriceYuan2fen($data['refundAmount']),  //元转分
+                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
                 'raw_data' => $data
             ];
             return $return;
@@ -188,11 +188,11 @@ abstract class Lianfutong extends GatewayInterface
             'is_subscribe' => '',
             'trade_type' => isset($data['payType']) ? $data['payType'] : '',
             'bank_type' => '',
-            'total_fee' => tools()::ncPriceYuan2fen($data['totalAmount']),  //分
+            'total_fee' => ToolsService::ncPriceYuan2fen($data['totalAmount']),  //分
             'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
             'out_trade_no' => isset($data['outTradeNo']) ? $data['outTradeNo'] : '',
             'attach' => '',
-            //'time_end'       => tools()::format_time($data['payTime']),
+            //'time_end'       => ToolsService::format_time($data['payTime']),
             'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
             'trade_state' => isset($data['orderStatus']) ? $data['orderStatus'] : '',
             'raw_data' => $data
@@ -240,7 +240,7 @@ abstract class Lianfutong extends GatewayInterface
         $this->config['sign'] = $this->getSign($this->config);
         $url = $this->gateway . $this->service;
         $result = $this->post($url, $this->config);
-        if (!tools()::is_json($result)) {
+        if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
@@ -324,11 +324,11 @@ abstract class Lianfutong extends GatewayInterface
                 'is_subscribe' => '',
                 'trade_type' => $data['payType'],
                 'bank_type' => '',
-                'total_fee' => tools()::ncPriceYuan2fen($data['totalAmount']),  //分
+                'total_fee' => ToolsService::ncPriceYuan2fen($data['totalAmount']),  //分
                 'transaction_id' => $data['transactionId'],
                 'out_trade_no' => $data['outTradeNo'],
                 'attach' => '',
-                //'time_end'       => tools()::format_time($data['payTime']),
+                //'time_end'       => ToolsService::format_time($data['payTime']),
                 'time_end' => $data['payTime'],
                 'trade_state' => $data['orderStatus'],
                 'raw_data' => $data

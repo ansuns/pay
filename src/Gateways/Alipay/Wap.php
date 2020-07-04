@@ -44,7 +44,7 @@ class Wap extends Alipay
         $data['subject'] = $options['body'];
         $data['body'] = $options['body'];
         $total_fee = $options['total_fee'];
-        $data['total_amount'] = tools()::ncPriceFen2yuan($total_fee);
+        $data['total_amount'] = ToolsService::ncPriceFen2yuan($total_fee);
         $result = $this->getResult($data, $this->getMethod());
         $result['out_trade_no'] = $result['out_trade_no'];
         $result['trade_no'] = $result['trade_no'];

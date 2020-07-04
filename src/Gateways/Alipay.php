@@ -2,7 +2,6 @@
 
 namespace Ansuns\Pay\Gateways;
 
-use app\common\help\CodeHelp;
 use InvalidArgumentException;
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
@@ -153,7 +152,7 @@ abstract class Alipay extends GatewayInterface
             $gmt_payment = str_replace(':', '', $gmt_payment);
             $gmt_payment = str_replace(' ', '', $gmt_payment);
             $data['time_end'] = $gmt_payment;
-            $data['total_fee'] = tools()::ncPriceYuan2fen($data['total_amount']);
+            $data['total_fee'] = ToolsService::ncPriceYuan2fen($data['total_amount']);
             $data['openid'] = isset($data['buyer_user_id']) ? $data['buyer_user_id'] : '';
         }
         return $data;
@@ -318,7 +317,7 @@ abstract class Alipay extends GatewayInterface
                 $gmt_payment = str_replace(':', '', $gmt_payment);
                 $gmt_payment = str_replace(' ', '', $gmt_payment);
                 $data['time_end'] = $gmt_payment;
-                $data['total_fee'] = tools()::ncPriceYuan2fen($data['total_amount']);
+                $data['total_fee'] = ToolsService::ncPriceYuan2fen($data['total_amount']);
                 $data = array_merge($this->success_return(), $data);
             }
             wr_log('支付回调验签名成功', 1);
@@ -333,7 +332,7 @@ abstract class Alipay extends GatewayInterface
                 $gmt_payment = str_replace(':', '', $gmt_payment);
                 $gmt_payment = str_replace(' ', '', $gmt_payment);
                 $data['time_end'] = $gmt_payment;
-                $data['total_fee'] = tools()::ncPriceYuan2fen($data['total_amount']);
+                $data['total_fee'] = ToolsService::ncPriceYuan2fen($data['total_amount']);
                 $data = array_merge($this->success_return(), $data);
             }
             wr_log('支付回调验签名失败', 1);

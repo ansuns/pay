@@ -32,8 +32,8 @@ class Miniapp extends Suixingfu
     {
         $this->service = "/qr/jsapiScan";
         $this->setReqData([
-            'ordNo' => $options['out_trade_no'] ?? tools()::get_bill_number(),
-            'amt' => tools()::ncPriceFen2yuan($options['total_fee']),
+            'ordNo' => $options['out_trade_no'] ?? ToolsService::get_bill_number(),
+            'amt' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             'payType' => 'LETPAY',
             'timeExpire' => 3,
             'subject' => '微信小程序买单',

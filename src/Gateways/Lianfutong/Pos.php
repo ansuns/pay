@@ -35,7 +35,7 @@ class Pos extends Lianfutong
             'merchantCode' => $this->userConfig->get('merchant_no'),
             'subject' => $options['body'],
             'outTradeNo' => $options['out_trade_no'],
-            'totalAmount' => tools()::ncPriceFen2yuan($options['total_fee']),
+            'totalAmount' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             'authCode' => $options['auth_code'],
             //'deviceInfo'   => isset($options['device_id']) ? $options['device_id'] : '',
             // 'subAppId'=> $options['appid']

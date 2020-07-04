@@ -36,7 +36,7 @@ class Pos extends Suixingfu
                 'authCode' => $auth_code,
                 'ordNo' => $options['out_trade_no'],
                 'subject' => $options['body'],
-                'amt' => tools()::ncPriceFen2yuan($options['total_fee']),
+                'amt' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             ]
         );
         if (preg_match("/^(10|11|12|13|14|15)\d{16}$/", $auth_code)) {

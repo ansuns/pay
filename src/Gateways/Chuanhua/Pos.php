@@ -51,8 +51,8 @@ class Pos extends Chuanhua
                 'body' => $options['body'],
                 'store_id' => 'null',
                 'terminal_id' => 'null',
-                'client_ip' => tools()::get_client_ip(),
-                'total_fee' => tools()::ncPriceFen2yuan($options['total_fee']),
+                'client_ip' => ToolsService::get_client_ip(),
+                'total_fee' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             ]
         );
         if (preg_match("/^(10|11|12|13|14|15)\d{16}$/", $auth_code)) {

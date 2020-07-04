@@ -19,7 +19,7 @@ class Facepay extends Chuanhua
         $this->service = "/openapi/merchant/pay/facepay-getauthinfo";
         $this->setConfig([
             'institution_mark' => 1,
-            'ordNo' => $options['out_trade_no'] ?? tools()::get_bill_number(),
+            'ordNo' => $options['out_trade_no'] ?? ToolsService::get_bill_number(),
             //'subAppId'     => $options['appid'], //	子商户公众账号ID(服务商模式)
             'wx_sub_appid' => $this->userConfig->get('wx_sub_appid'),//必传
             'store_id' => isset($options['store_id']) ? $options['store_id'] : 1, //门店编号， 由商户定义， 各门店唯一。
@@ -56,8 +56,8 @@ class Facepay extends Chuanhua
                 'body' => $options['body'],
                 'store_id' => 'null',
                 'terminal_id' => 'null',
-                'client_ip' => tools()::get_client_ip(),
-                'total_fee' => tools()::ncPriceFen2yuan($options['total_fee']),
+                'client_ip' => ToolsService::get_client_ip(),
+                'total_fee' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             ]
         );
         if (preg_match("/^(10|11|12|13|14|15)\d{16}$/", $auth_code)) {

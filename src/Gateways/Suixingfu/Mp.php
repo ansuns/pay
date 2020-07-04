@@ -36,7 +36,7 @@ class Mp extends Suixingfu
             'tradeType' => $this->getTradeType(),
             'subject' => '微信买单',
             'outTradeNo' => $options['out_trade_no'],
-            'totalAmount' => tools()::ncPriceFen2yuan($options['total_fee']),
+            'totalAmount' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             'openId' => $options['openid'],
             'notifyUrl' => str_replace('https', 'http', $options['notify_url'])
         ];

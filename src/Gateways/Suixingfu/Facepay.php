@@ -21,7 +21,7 @@ class Facepay extends Suixingfu
         $this->service = "/qr/getAuthInfo";
         $this->setReqData([
             'merchantCode' => $this->userConfig->get('merchant_no'),
-            'ordNo' => $options['out_trade_no'] ?? tools()::get_bill_number(),
+            'ordNo' => $options['out_trade_no'] ?? ToolsService::get_bill_number(),
             //'subAppid'     => '',//选选
             'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
             'storeId' => isset($options['store_id']) ? $options['store_id'] : 1, //门店编号， 由商户定义， 各门店唯一。
@@ -57,7 +57,7 @@ class Facepay extends Suixingfu
                 'authCode' => $auth_code,
                 'ordNo' => $options['out_trade_no'],
                 'subject' => $options['body'],
-                'amt' => tools()::ncPriceFen2yuan($options['total_fee']),
+                'amt' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             ]
         );
         if (preg_match("/^(10|11|12|13|14|15)\d{16}$/", $auth_code)) {

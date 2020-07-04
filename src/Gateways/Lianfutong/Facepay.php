@@ -27,7 +27,7 @@ class Facepay extends Lianfutong
         $this->service = "/facePayAuth";
         $data = [
             'merchantCode' => $this->userConfig->get('merchant_no'),
-            'outTradeNo' => $options['out_trade_no'] ?? tools()::get_bill_number(),
+            'outTradeNo' => $options['out_trade_no'] ?? ToolsService::get_bill_number(),
             //'subAppId'     => $options['appid'], //	子商户公众账号ID(服务商模式)
             'storeId' => isset($options['store_id']) ? $options['store_id'] : 1, //门店编号， 由商户定义， 各门店唯一。
             'storeName' => isset($options['store_name']) ? $options['store_name'] : 1, //门店编号， 由商户定义， 各门店唯一。
@@ -63,7 +63,7 @@ class Facepay extends Lianfutong
             'merchantCode' => $this->userConfig->get('merchant_no'),
             'subject' => $options['body'],
             'outTradeNo' => $options['out_trade_no'],
-            'totalAmount' => tools()::ncPriceFen2yuan($options['total_fee']),
+            'totalAmount' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             'openId' => $options['openid'],
             'authCode' => $auth_code,
             // 'subAppId'=> $options['appid']
