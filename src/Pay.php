@@ -27,6 +27,14 @@ class Pay
      */
     private $gateways;
 
+
+    protected static $instance = null;
+    public $driver;
+    public $class;
+    public $scene;
+    public $pay_parameter = null;
+    protected $debug;
+
     /**
      * Pay constructor.
      * @param array $config
@@ -34,6 +42,38 @@ class Pay
     public function __construct(array $config = [])
     {
         $this->config = new Config($config);
+    }
+
+    public function __call($name, $arguments)
+    {
+        $pays = $this->get_class();
+        return call_user_func_array([$pays->driver(ucfirst($this->class))->gateway(ucfirst($this->scene)), $name],
+            $arguments);
+    }
+
+    /**
+     * @return Pay
+     */
+    public function get_class()
+    {
+        $pay_parameter = $this->get_pay_parameter();
+        return new self([ucfirst($this->class) => $pay_parameter]);
+    }
+
+    public function get_pay_parameter()
+    {
+        if ($this->pay_parameter) {
+            return $this->pay_parameter;
+        }
+
+//        $pay_parameter                       = $parameter['parameter'];
+//        $pay_parameter['pay_parameter_guid'] = $parameter['guid'];
+//        if ($this->debug) {
+//            $pay_parameter['debug'] = true;
+//        }
+//        $this->class         = $parameter['class'];
+//        $this->pay_parameter = $pay_parameter;
+        return $this->pay_parameter;
     }
 
     /**
