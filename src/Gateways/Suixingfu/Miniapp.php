@@ -26,7 +26,7 @@ class Miniapp extends Suixingfu
      * 应用并返回参数
      * @param array $options
      * @return array
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {

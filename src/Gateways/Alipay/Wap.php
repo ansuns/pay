@@ -4,6 +4,7 @@
 namespace Ansuns\Pay\Gateways\Alipay;
 
 use Ansuns\Pay\Gateways\Alipay;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 手机WAP支付网关

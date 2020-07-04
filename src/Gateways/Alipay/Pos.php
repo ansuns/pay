@@ -3,6 +3,7 @@
 namespace Ansuns\Pay\Gateways\Alipay;
 
 use Ansuns\Pay\Gateways\Alipay;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 支付宝刷卡支付
@@ -35,7 +36,7 @@ class Pos extends Alipay
      * @param array $options
      * @param string $scene
      * @return array|bool
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [], $scene = 'bar_code')
     {

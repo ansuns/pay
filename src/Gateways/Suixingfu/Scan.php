@@ -26,7 +26,7 @@ class Scan extends Suixingfu
      * 应用并返回参数
      * @param array $options
      * @return mixed
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {

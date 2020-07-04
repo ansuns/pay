@@ -4,6 +4,7 @@
 namespace Ansuns\Pay\Gateways\Lianfutong;
 
 use Ansuns\Pay\Gateways\Lianfutong;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 微信公众号支付网关
@@ -25,7 +26,7 @@ class Mp extends Lianfutong
      * 设置并返回参数
      * @param array $options
      * @return array
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {

@@ -3,6 +3,7 @@
 namespace Ansuns\Pay\Gateways\Alipay;
 
 use Ansuns\Pay\Gateways\Alipay;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 支付宝电子面单下载
@@ -127,7 +128,7 @@ class Bill extends Alipay
      * 应用并返回参数
      * @param array $options
      * @return array|bool
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {

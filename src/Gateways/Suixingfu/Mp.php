@@ -4,6 +4,7 @@
 namespace Ansuns\Pay\Gateways\Suixingfu;
 
 use Ansuns\Pay\Gateways\Suixingfu;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 微信公众号支付网关
@@ -25,7 +26,7 @@ class Mp extends Suixingfu
      * 设置并返回参数
      * @param array $options
      * @return array
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {

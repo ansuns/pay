@@ -26,7 +26,7 @@ class Wap extends Chuanhua
      * @param array $options
      * @param string $return_url
      * @return string
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [], $return_url = '')
     {

@@ -34,7 +34,7 @@ class Transfer extends Alipay
      * 应用并返回参数
      * @param array $options
      * @return array|bool
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function apply(array $options = [])
     {
@@ -45,7 +45,7 @@ class Transfer extends Alipay
      * 查询转账订单状态
      * @param string $out_biz_no
      * @return array|bool
-     * @throws \Pays\Exceptions\GatewayException
+     * @throws \Ansuns\Pay\Exceptions\GatewayException
      */
     public function find($out_biz_no = '')
     {
