@@ -1,6 +1,6 @@
 {
-    "name": "ansuns/sandpay",
-    "description": "杉德支付包",
+    "name": "ansuns/pay",
+    "description": "支付包",
     "require": {
         "php": "^7.2"
     },
@@ -12,11 +12,11 @@
         }
     ],
     "keywords": [
-        "sandpay"
+        "pay 杉德 支付包 微信 传化 随行付 联富通"
     ],
     "autoload": {
       "psr-4": {
-        "Ansuns\\": "src/"
+        "Ansuns\\Pay\\": "src/"
       }
     }
 }
