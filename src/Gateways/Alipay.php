@@ -12,7 +12,7 @@ use Ansuns\Pay\Exceptions\GatewayException;
 /**
  * 支付宝抽象类
  * Class Alipay
- * @package Pays\Gateways\Alipay
+ * @package Pay\Gateways\Alipay
  */
 abstract class Alipay extends GatewayInterface
 {

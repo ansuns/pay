@@ -12,7 +12,7 @@ use Ansuns\Pay\Exceptions\InvalidArgumentException;
 /**
  * 微信支付基础类
  * Class Wechat
- * @package Pays\Gateways\Wechat
+ * @package Pay\Gateways\Wechat
  */
 abstract class Chuanhua extends GatewayInterface
 {

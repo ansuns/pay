@@ -1,6 +1,6 @@
 <?php
 
-namespace Ansuns\Pays;
+namespace Ansuns\Pay;
 
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
@@ -9,7 +9,7 @@ use Ansuns\Pay\Exceptions\InvalidArgumentException;
  * Class Pay
  * @package Pay
  */
-class Pays
+class Pay
 {
 
     /**
