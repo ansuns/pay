@@ -8,6 +8,7 @@ use Ansuns\Pay\Contracts\HttpService;
 use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 微信支付基础类

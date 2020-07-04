@@ -4,6 +4,7 @@
 namespace Ansuns\Pay\Gateways\Chuanhua;
 
 use Ansuns\Pay\Gateways\Chuanhua;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 微信小程序支付网关

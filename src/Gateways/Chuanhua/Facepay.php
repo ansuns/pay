@@ -4,8 +4,8 @@ namespace Ansuns\Pay\Gateways\Chuanhua;
 
 use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
-use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Gateways\Chuanhua;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 人脸支付

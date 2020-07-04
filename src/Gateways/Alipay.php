@@ -7,6 +7,7 @@ use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
 use Ansuns\Pay\Contracts\HttpService;
 use Ansuns\Pay\Exceptions\GatewayException;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 支付宝抽象类

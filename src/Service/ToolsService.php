@@ -177,7 +177,7 @@ class ToolsService
         }
         // IP地址合法验证
         $long = sprintf("%u", ip2long($ip));
-        $ip   = $long ? [$ip, $long] : ['0.0.0.0', 0];
+        $ip = $long ? [$ip, $long] : ['0.0.0.0', 0];
         return $ip[$type];
     }
 
@@ -189,7 +189,7 @@ class ToolsService
     public static function is_expired($datetime)
     {
         //时间大于2038年 不能直接用strtotime //http://www.jb51.net/article/117320.htm
-        $datetime     = new \DateTime($datetime);
+        $datetime = new \DateTime($datetime);
         $expired_time = $datetime->format('U');
         return (time() > $expired_time);
     }
@@ -248,7 +248,7 @@ class ToolsService
                 return [];
             }
             $disableEntities = libxml_disable_entity_loader(true);
-            $result          =
+            $result =
                 json_decode(self::arr2json(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
             libxml_disable_entity_loader($disableEntities);
             return $result;
@@ -377,12 +377,12 @@ class ToolsService
 
     public static function mbStrSplit($string, $len = 1)
     {
-        $start   = 0;
+        $start = 0;
         $str_len = strlen($string);
-        $array   = [];
+        $array = [];
         while ($str_len) {
             $array[] = mb_strcut($string, $start, $len, "utf8");
-            $string  = mb_strcut($string, $len, $str_len, "utf8");
+            $string = mb_strcut($string, $len, $str_len, "utf8");
             $str_len = strlen($string);
         }
         return $array;
@@ -391,7 +391,7 @@ class ToolsService
     public static function unicode_to_utf8($name)
     {
         $json = '{"str":"' . $name . '"}';
-        $arr  = json_decode($json, true);
+        $arr = json_decode($json, true);
         return empty($arr) ? $name : $arr['str'];
     }
 
@@ -399,7 +399,7 @@ class ToolsService
     {
         try {
             $encode_arr = ['UTF-8', 'ASCII', 'GBK', 'GB2312', 'BIG5', 'JIS', 'eucjp-win', 'sjis-win', 'EUC-JP'];
-            $encoded    = mb_detect_encoding($data, $encode_arr);
+            $encoded = mb_detect_encoding($data, $encode_arr);
             if (!is_array($data)) {
                 return mb_convert_encoding($data, $output, $encoded);
             } else {
@@ -441,19 +441,19 @@ class ToolsService
         }
         if (empty ($start)) {
             $endPosition = strpos($str, $end);
-            $endLen      = strlen($end);
+            $endLen = strlen($end);
             return trim(substr($str, 0, $endPosition));
         }
         if (empty ($end)) {
             $startPosition = strpos($str, $start);
-            $startLen      = strlen($start);
+            $startLen = strlen($start);
             return trim(substr($str, $startPosition + $startLen));
         }
         $strarr = explode($start, $str);
         if (!isset ($strarr[1])) {
             return false;
         } else {
-            $str    = $strarr[1];
+            $str = $strarr[1];
             $strarr = explode($end, $str);
             return trim($strarr[0]);
         }
@@ -469,7 +469,7 @@ class ToolsService
         mt_srand(( double )microtime() * 10000); // optional for php 4.2.0 and up.
         $charid = strtoupper(md5(uniqid(rand(), true)));
         $hyphen = chr(45); // "-"
-        $uuid   =
+        $uuid =
             substr($charid, 0, 8) . $hyphen . substr($charid, 8, 4) . $hyphen . substr($charid, 12,
                 4) . $hyphen . substr($charid, 16, 4) . $hyphen . substr($charid, 20, 12);
         return strtolower($uuid);
@@ -521,9 +521,9 @@ class ToolsService
             return $pathname . $filename;
         }
 
-        $level        = "L"; // 二维码容错率，默认L
-        $size         = 8; // 二维码图片每个黑点的像素，默认4
-        $padding      = 2; // 二维码边框的间距，默认2
+        $level = "L"; // 二维码容错率，默认L
+        $size = 8; // 二维码图片每个黑点的像素，默认4
+        $padding = 2; // 二维码边框的间距，默认2
         $saveandprint = true; // 保存二维码图片并显示出来，$filename必须传递文件路径
         // 生成二维码图片
         $cre = \QRcode::png($text, $pathname . $filename, $level, $size, $padding, $saveandprint);
@@ -556,20 +556,20 @@ class ToolsService
     public static function getIDCardInfo($IDCard, $format = 1)
     {
         $result['error'] = 0;//0：未知错误，1：身份证格式错误，2：无错误
-        $result['flag']  = '';//0标示成年，1标示未成年
+        $result['flag'] = '';//0标示成年，1标示未成年
         $result['tdate'] = '';//生日，格式如：2012-11-15
         if (!preg_match("/^(\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$/", $IDCard)) {
             $result['error'] = 1;
             return $result;
         } else {
             if (strlen($IDCard) == 18) {
-                $tyear  = intval(substr($IDCard, 6, 4));
+                $tyear = intval(substr($IDCard, 6, 4));
                 $tmonth = intval(substr($IDCard, 10, 2));
-                $tday   = intval(substr($IDCard, 12, 2));
+                $tday = intval(substr($IDCard, 12, 2));
             } elseif (strlen($IDCard) == 15) {
-                $tyear  = intval("19" . substr($IDCard, 6, 2));
+                $tyear = intval("19" . substr($IDCard, 6, 2));
                 $tmonth = intval(substr($IDCard, 8, 2));
-                $tday   = intval(substr($IDCard, 10, 2));
+                $tday = intval(substr($IDCard, 10, 2));
             }
 
             if ($tyear > date("Y") || $tyear < (date("Y") - 100)) {
@@ -592,8 +592,8 @@ class ToolsService
                 }
             }
         }
-        $result['error']    = 2;//0：未知错误，1：身份证格式错误，2：无错误
-        $result['isAdult']  = $flag;//0标示成年，1标示未成年
+        $result['error'] = 2;//0：未知错误，1：身份证格式错误，2：无错误
+        $result['isAdult'] = $flag;//0标示成年，1标示未成年
         $result['birthday'] = $tdate;//生日日期
         return $result;
     }
@@ -671,12 +671,12 @@ class ToolsService
     public static function unique_rand($length, $num = 1, $old_arr = [])
     {
         $count = 0;
-        $min   = (int)('1' . str_repeat(0, $length - 1));
-        $max   = (int)str_repeat(9, $length);
-        $arr   = [];
+        $min = (int)('1' . str_repeat(0, $length - 1));
+        $max = (int)str_repeat(9, $length);
+        $arr = [];
         while ($count < $num) {
             for ($x = 0; $x <= $num; $x++) {
-                $rand  = mt_rand($min, $max);
+                $rand = mt_rand($min, $max);
                 $arr[] = $rand;
             }
             $arr = array_flip(array_flip($arr));
@@ -701,9 +701,9 @@ class ToolsService
     public static function end_with($haystack, $needle)
     {
         $haystack = (string)$haystack; //转换成字符串
-        $needles  = is_array($needle) ? $needle : [$needle];
+        $needles = is_array($needle) ? $needle : [$needle];
         foreach ($needles as $key => $val) {
-            $val    = (string)$val; //转换成字符串
+            $val = (string)$val; //转换成字符串
             $length = strlen($val);
             if ($length == 0) {
                 return true;
@@ -718,9 +718,9 @@ class ToolsService
     public static function start_with($haystack, $needle)
     {
         $haystack = (string)$haystack; //转换成字符串
-        $needles  = (is_array($needle) ? $needle : [$needle]);
+        $needles = (is_array($needle) ? $needle : [$needle]);
         foreach ($needles as $key => $val) {
-            $val    = (string)$val; //转换成字符串
+            $val = (string)$val; //转换成字符串
             $length = strlen($val);
             if ($length == 0) {
                 return true;
@@ -806,11 +806,12 @@ class ToolsService
         $keyParentId = 'parent_guid',
         $keyChildrens = 'sub',
         &$refs = null
-    ) {
+    )
+    {
         $refs = [];
         foreach ($arr as $offset => $row) {
             $arr[$offset][$keyChildrens] = [];
-            $refs[$row[$keyNodeId]]      = &$arr[$offset];
+            $refs[$row[$keyNodeId]] = &$arr[$offset];
         }
 
         $tree = [];
@@ -821,7 +822,7 @@ class ToolsService
                     $tree[] = &$arr[$offset];
                     continue;
                 }
-                $parent                  = &$refs[$parentId];
+                $parent = &$refs[$parentId];
                 $parent[$keyChildrens][] = &$arr[$offset];
             } else {
                 $tree[] = &$arr[$offset];
@@ -844,7 +845,7 @@ class ToolsService
             if ($parent_guid == $item[$parentId]) {
                 in_array($item, $newArr) || $newArr[] = $item;
                 unset($arr[$key]);
-                $sub    = ToolsService::treeSort($arr, $item[$id]);
+                $sub = ToolsService::treeSort($arr, $item[$id]);
                 $newArr = array_merge($newArr, $sub);
             }
         }
@@ -857,10 +858,11 @@ class ToolsService
         $id = 'guid',
         $parentId = 'parent_guid',
         $keyChildrens = 'sub'
-    ) {
+    )
+    {
         $parent_guid = $parent_guid ?: self::get_empty_guid();
-        $arr         = [];
-        $tem         = [];
+        $arr = [];
+        $tem = [];
         foreach ($array as $v) {
             $v['open'] = true;
             if ($v[$parentId] == $parent_guid) {
@@ -1021,7 +1023,7 @@ class ToolsService
     public static function arr2table($list, $id = 'id', $pid = 'pid', $path = 'path', $ppath = '')
     {
         $_array_tree = self::arr2tree($list, $id, $pid);
-        $tree        = [];
+        $tree = [];
         foreach ($_array_tree as $_tree) {
             $_tree[$path] = $ppath . '-' . $_tree[$id];
             $_tree['spl'] = str_repeat("&nbsp;&nbsp;&nbsp;├&nbsp;&nbsp;", substr_count($ppath, '-'));
@@ -1033,7 +1035,7 @@ class ToolsService
             $tree[] = $_tree;
             if (!empty($sub)) {
                 $sub_array = self::arr2table($sub, $id, $pid, $path, $_tree[$path]);
-                $tree      = array_merge($tree, (Array)$sub_array);
+                $tree = array_merge($tree, (Array)$sub_array);
             }
         }
         return $tree;
@@ -1110,9 +1112,9 @@ class ToolsService
     public static function convert_url_query($query)
     {
         $queryParts = explode('&', $query);
-        $params     = array();
+        $params = array();
         foreach ($queryParts as $param) {
-            $item             = explode('=', $param);
+            $item = explode('=', $param);
             $params[$item[0]] = $item[1];
         }
         return $params;
@@ -1321,10 +1323,10 @@ class ToolsService
 
     public static function _getFsFormData($data, $json_key)
     {
-        $form_data            = urldecode($data['fsFormData']);
-        $form_data            = json_decode($form_data, true);
-        $table_data           = urldecode($data['fsTableData']);
-        $table_data           = json_decode($table_data, true);
+        $form_data = urldecode($data['fsFormData']);
+        $form_data = json_decode($form_data, true);
+        $table_data = urldecode($data['fsTableData']);
+        $table_data = json_decode($table_data, true);
         $form_data[$json_key] = $table_data;
         return $form_data;
     }
@@ -1374,7 +1376,7 @@ class ToolsService
     public static function get_absolute_path($path)
     {
         $root_path = App::getRootPath();
-        $path      = $root_path . "public/" . ltrim($path, '/');
+        $path = $root_path . "public/" . ltrim($path, '/');
         return str_replace('\\', '/', $path);
     }
 
@@ -1385,7 +1387,7 @@ class ToolsService
     public static function web_to_path($url)
     {
         $request = request();
-        $domain  = $request->domain();
+        $domain = $request->domain();
         return str_replace($domain, '', $url);
     }
 
@@ -1399,8 +1401,8 @@ class ToolsService
      */
     public static function countDown($endTime)
     {
-        $endTime        = strtotime($endTime);
-        $beiginTime     = strtotime(date('Y-m-d H:i:s'));
+        $endTime = strtotime($endTime);
+        $beiginTime = strtotime(date('Y-m-d H:i:s'));
         $timeDifference = $endTime - $beiginTime;
         switch ($timeDifference) {
             case $timeDifference < 0 :
@@ -1410,21 +1412,21 @@ class ToolsService
                 $timeDifference = $timeDifference . '秒';
                 break;
             case $timeDifference < 3600 :
-                $minutes        = floor($timeDifference / 60);
-                $seconds        = floor($timeDifference - ($minutes * 60));
+                $minutes = floor($timeDifference / 60);
+                $seconds = floor($timeDifference - ($minutes * 60));
                 $timeDifference = $minutes . '分' . $seconds . '秒';
                 break;
             case $timeDifference < 86400 :
-                $hours          = floor($timeDifference / 3600);
-                $minutes        = floor(($timeDifference - ($hours * 3600)) / 60);
-                $seconds        = floor($timeDifference - ($hours * 3600) - ($minutes * 60));
+                $hours = floor($timeDifference / 3600);
+                $minutes = floor(($timeDifference - ($hours * 3600)) / 60);
+                $seconds = floor($timeDifference - ($hours * 3600) - ($minutes * 60));
                 $timeDifference = $hours . '小时' . $minutes . '分' . $seconds . '秒';
                 break;
             default:
-                $days           = floor(($timeDifference / 86400));
-                $hours          = floor(($timeDifference - ($days * 86400)) / 3600);
-                $minutes        = floor(($timeDifference - ($days * 86400) - ($hours * 3600)) / 60);
-                $seconds        = floor($timeDifference - ($days * 86400) - ($hours * 3600) - ($minutes * 60));
+                $days = floor(($timeDifference / 86400));
+                $hours = floor(($timeDifference - ($days * 86400)) / 3600);
+                $minutes = floor(($timeDifference - ($days * 86400) - ($hours * 3600)) / 60);
+                $seconds = floor($timeDifference - ($days * 86400) - ($hours * 3600) - ($minutes * 60));
                 $timeDifference = $days . '天' . $hours . '小时' . $minutes . '分' . $seconds . '秒';
                 break;
         }
@@ -1534,9 +1536,9 @@ class ToolsService
         $radLat2 = deg2rad($lat2);
         $radLng1 = deg2rad($lng1);
         $radLng2 = deg2rad($lng2);
-        $a       = $radLat1 - $radLat2;
-        $b       = $radLng1 - $radLng2;
-        $s       = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * $radius;
+        $a = $radLat1 - $radLat2;
+        $b = $radLng1 - $radLng2;
+        $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * $radius;
         return $s;
     }
 
@@ -1550,13 +1552,13 @@ class ToolsService
      */
     public static function distance($lat1, $lon1, $lat2, $lon2, $radius = 6378.137)
     {
-        $rad   = floatval(M_PI / 180.0);
-        $lat1  = floatval($lat1) * $rad;
-        $lon1  = floatval($lon1) * $rad;
-        $lat2  = floatval($lat2) * $rad;
-        $lon2  = floatval($lon2) * $rad;
+        $rad = floatval(M_PI / 180.0);
+        $lat1 = floatval($lat1) * $rad;
+        $lon1 = floatval($lon1) * $rad;
+        $lat2 = floatval($lat2) * $rad;
+        $lon2 = floatval($lon2) * $rad;
         $theta = $lon2 - $lon1;
-        $dist  = acos(sin($lat1) * sin($lat2) + cos($lat1) * cos($lat2) * cos($theta));
+        $dist = acos(sin($lat1) * sin($lat2) + cos($lat1) * cos($lat2) * cos($theta));
         if ($dist < 0) {
             $dist += M_PI;
         }
@@ -1631,9 +1633,9 @@ class ToolsService
     public static function cookies_to_array($cookies)
     {
         $cookies_array = [];
-        $array         = explode(';', $cookies);
+        $array = explode(';', $cookies);
         foreach ($array as $key => $val) {
-            $str                          = explode('=', $val);
+            $str = explode('=', $val);
             $cookies_array[trim($str[0])] = trim($str[1]);
         }
         return $cookies_array;
