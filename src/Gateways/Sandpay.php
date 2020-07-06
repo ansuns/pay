@@ -131,7 +131,6 @@ abstract class Sandpay extends GatewayInterface
         $url = $this->gateway;
         $header = ['Content-Type: application/json'];
         $result = $this->curl($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
-        file_put_contents('./getResult.txt', $result . "\r\n", FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
