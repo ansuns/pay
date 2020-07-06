@@ -2,6 +2,7 @@
 
 namespace Ansuns\Pay\Contracts;
 
+
 /**
  * 支付网关接口
  * Interface GatewayInterface
@@ -55,6 +56,7 @@ abstract class GatewayInterface
      */
     public function post($url, $data, $options = [])
     {
-        return HttpService::post($url, $data, $options);
+        file_put_contents('./getResult.txt', $data . PHP_EOL, FILE_APPEND);
+        return \Ansuns\Pay\Service\HttpService::get_instance()->post($url, $data, $options);
     }
 }

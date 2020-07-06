@@ -5,6 +5,7 @@ namespace Ansuns\Pay\Gateways;
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
 use Ansuns\Pay\Contracts\HttpService;
+use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\ToolsService;
@@ -33,12 +34,14 @@ abstract class Sandpay extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway = 'https://icm-management.suixingpay.com/management';
+    protected $gateway = 'https://hmpay.sandpay.com.cn/gateway_t/api';
 
     /**
      * @var string
      */
     protected $gateway_query = 'https://api.mch.weixin.qq.com/pay/orderquery';
+
+    protected $privateKey = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
 
     /**
      * Wechat constructor.
@@ -49,13 +52,13 @@ abstract class Sandpay extends GatewayInterface
     {
         $this->userConfig = new Config($config);
         if (is_null($this->userConfig->get('org_id'))) {
-            throw new InvalidArgumentException('Missing Config -- [org_id]');
+            //throw new InvalidArgumentException('Missing Config -- [org_id]');
         }
         if (is_null($this->userConfig->get('mno'))) {
             //throw new InvalidArgumentException('Missing Config -- [mno]');
         }
         if (is_null($this->userConfig->get('sxf_pub_key'))) {
-            throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
+            //throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
         }
         if (is_null($this->userConfig->get('cooprator_pri_key'))) {
             //throw new InvalidArgumentException('Missing Config -- [cooprator_pri_key]');
@@ -66,16 +69,17 @@ abstract class Sandpay extends GatewayInterface
         if (!empty($config['cache_path'])) {
             HttpService::$cachePath = $config['cache_path'];
         }
+        $this->userConfig['private_key'] = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
         $this->config = [
-            'orgId' => $this->userConfig->get('org_id', ''),
-            //'orgId'     => '3679152084',
-            'reqId' => $this->createNonceStr(32),
+            'app_id' => '663101000017582',
+            'sub_app_id' => '',
+            'timestamp' => date('Y-m-d H:i:s'),
+            'format' => 'JSON',
+            'charset' => 'UTF-8',
+            'sign_type' => 'RSA',
+            'nonce' => $this->createNonceStr(),
             'version' => '1.0',
-            'reqData' => [
-                'mno' => $this->userConfig->get('mno', ''),
-            ],
-            'signType' => 'RSA',
-            'timestamp' => date('YmdHis'),
+            'biz_content' => [],
         ];
     }
 
@@ -86,8 +90,32 @@ abstract class Sandpay extends GatewayInterface
      */
     protected function setReqData($array)
     {
-        $this->config['reqData'] += $array;
+        $this->config['biz_content'] += $array;
         return $this;
+    }
+
+    protected function curl($url, $data)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_FAILONERROR, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $headers = array('content-type: application/json');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $reponse = curl_exec($ch);
+        if (curl_errno($ch)) {
+            throw new Exception(curl_error($ch), 0);
+        } else {
+            $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if (200 !== $httpStatusCode) {
+                throw new Exception($reponse, $httpStatusCode);
+            }
+        }
+
+        curl_close($ch);
+        return $reponse;
     }
 
     /**
@@ -97,38 +125,31 @@ abstract class Sandpay extends GatewayInterface
      */
     protected function getResult()
     {
-        $this->config['reqData'] = json_encode($this->config['reqData'], JSON_UNESCAPED_UNICODE);
-        $this->config['sign'] = $this->getSign($this->config);
-        $url = $this->gateway . $this->service;
+        $this->config['method'] = $this->getTradeType();
+        $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
+        $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
+        $url = $this->gateway;
         $header = ['Content-Type: application/json'];
-        $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
+        $result = $this->curl($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        file_put_contents('./getResult.txt', $result . "\r\n", FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
-            throw new GatewayException('验证签名失败', 20000, $result);
-        }
-        //错误示例1{"msg":"subOpenId or subAppid is empty","code":"SXF0002"}
-        //错误示例2{"msg":"操作成功","code":"SXF0000","sign":"XX","respData":{"bizMsg":"交易失败，请联系客服","bizCode":"2010","uuid":"093755621dc64ce0b3cfda3c335a83e5"},"signType":"RSA","orgId":"21561002","reqId":"3FQillJLkDGMxngvRKfbYo3kccuBIGYy"}
-        $response_data = $result['respData'] ?? $result;
+
+//        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
+//            throw new GatewayException('验证签名失败', 20000, $result);
+//        }
+        $response_data = [];
+        $response = isset($result['data']) ? json_decode($result['data'], true) : [];
+        $response_data = array_merge($response_data, $response);
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($result['code']) || $result['code'] !== 'SXF0000' || (isset($response_data['bizCode']) && $response_data['bizCode'] !== '0000')) {
+        if (!isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS') {
             $response_data['result_code'] = 'FAIL';
-            $err_code_des = 'ERROR_MSG:' . (isset($result['msg']) ? $result['msg'] : '');
-            $err_code_des .= isset($result['code']) ? ';ERROR_CODE:' . $result['code'] : '';
-            $err_code_des .= isset($response_data['bizCode']) ? ';ERROR_SUB_CODE:' . $response_data['bizCode'] : '';
-            $err_code_des .= isset($response_data['bizMsg']) ? ';ERROR_SUB_MSG:' . $response_data['bizMsg'] : '';
-            $err_code = isset($response_data['bizCode']) ? $response_data['bizCode'] : 'FAIL';
-            if (isset($response_data['msg']) && (strpos($response_data['msg'], 'ordNo不能重复') !== false)) {
-                //针对商城特殊判断返回
-                // {"msg":"ordNo不能重复","code":"SXF0002"}
-                $err_code = 'INVALID_REQUEST';
-            }
-            $response_data['err_code'] = $err_code;
-            $response_data['err_code_des'] = $err_code_des;
+            $response_data['err_code'] = '';
+            $response_data['err_code_des'] = '';
         }
         return $response_data;
     }
@@ -375,46 +396,58 @@ abstract class Sandpay extends GatewayInterface
         exit();
     }
 
-    /**
-     * 生成内容签名
-     * @param $data
-     * @return string
-     */
-    protected function getSign($data)
+    public function rsaSign($params, $signType = "RSA")
     {
-        if (is_null($this->userConfig->get('cooprator_pri_key'))) {
-            throw new InvalidArgumentException('Missing Config -- [cooprator_pri_key]');
-        }
-        ksort($data);
-        $data = $this->getSignContent($data);
-        $cooprator_pri_key = $this->userConfig->get('cooprator_pri_key');
-        $str = chunk_split($cooprator_pri_key, 64, "\n");
-        $private_key = "-----BEGIN RSA PRIVATE KEY-----\n$str-----END RSA PRIVATE KEY-----\n";
-        $res = openssl_get_privatekey($private_key);
-        openssl_sign($data, $sign, $res);
-        openssl_free_key($res);
-        return base64_encode($sign);  //base64编码
+        return $this->sign($this->getSignContent($params), $signType);
     }
 
-    /**
-     * 生成签名内容
-     * @param array $sign_data
-     * @return string
-     */
-    private function getSignContent($sign_data)
+    protected function getSignContent($params)
     {
-        ksort($sign_data);
-        $params = [];
-        foreach ($sign_data as $key => $value) {
-            if (is_array($value)) {
-                $value = stripslashes(json_encode($value, JSON_UNESCAPED_UNICODE));
-            }
-            if ($key != 'sign') {
-                $params[] = $key . '=' . $value;
+        ksort($params);
+
+        $stringToBeSigned = "";
+        $i = 0;
+        foreach ($params as $k => $v) {
+            if (false === $this->checkEmpty($v) && "@" != substr($v, 0, 1)) {
+
+                if ($i == 0) {
+                    $stringToBeSigned .= "$k" . "=" . "$v";
+                } else {
+                    $stringToBeSigned .= "&" . "$k" . "=" . "$v";
+                }
+                $i++;
             }
         }
-        $data = implode("&", $params);
-        return $data;
+
+        unset ($k, $v);
+        return $stringToBeSigned;
+    }
+
+    protected function sign($data, $priKey, $signType = "RSA")
+    {
+        $res = "-----BEGIN RSA PRIVATE KEY-----\n" .
+            wordwrap($priKey, 64, "\n", true) .
+            "\n-----END RSA PRIVATE KEY-----";
+
+        if ("RSA2" == $signType) {
+            openssl_sign($data, $sign, $res, OPENSSL_ALGO_SHA256);
+        } else {
+            openssl_sign($data, $sign, $res);
+        }
+        $sign = base64_encode($sign);
+        return $sign;
+    }
+
+    protected function checkEmpty($value)
+    {
+        if (!isset($value))
+            return true;
+        if ($value === null)
+            return true;
+        if (trim($value) === "")
+            return true;
+
+        return false;
     }
 
     /**
