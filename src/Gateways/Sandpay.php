@@ -53,15 +53,19 @@ abstract class Sandpay extends GatewayInterface
         $this->userConfig = new Config($config);
         if (is_null($this->userConfig->get('org_id'))) {
             //throw new InvalidArgumentException('Missing Config -- [org_id]');
+
         }
         if (is_null($this->userConfig->get('mno'))) {
             //throw new InvalidArgumentException('Missing Config -- [mno]');
+
         }
         if (is_null($this->userConfig->get('sxf_pub_key'))) {
             //throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
+
         }
         if (is_null($this->userConfig->get('cooprator_pri_key'))) {
             //throw new InvalidArgumentException('Missing Config -- [cooprator_pri_key]');
+            
         }
         if (is_null($this->userConfig->get('cooprator_pub_key'))) {
             //throw new InvalidArgumentException('Missing Config -- [cooprator_pub_key]');
