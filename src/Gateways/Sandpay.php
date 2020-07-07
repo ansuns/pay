@@ -5,6 +5,7 @@ namespace Ansuns\Pay\Gateways;
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
 use Ansuns\Pay\Exceptions\GatewayException;
+use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\HttpService;
 use Ansuns\Pay\Service\ToolsService;
 
@@ -39,10 +40,6 @@ abstract class Sandpay extends GatewayInterface
      */
     protected $gateway_query = 'https://api.mch.weixin.qq.com/pay/orderquery';
 
-    protected $privateKey = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
-
-    protected $publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDRamiEs847/Pft/M+xB5/TwxuiOYzVEFh0/zQ44KOKjYmb0C7YZW6TSCzBidysKiNkw8qI0YcDDQAS4c5mKEk5WLNzZKMEbvEvy+xUg7tdZBUaklPzse7bGCDCQCwzl1dXgWeZhH6s9vGCQPL6Lmk9vNyTGqKm2rxitDe4uw9QWQIDAQAB";
-
     /**
      * Wechat constructor.
      * @param array $config
@@ -51,26 +48,18 @@ abstract class Sandpay extends GatewayInterface
     public function __construct(array $config)
     {
         $this->userConfig = new Config($config);
-        if (is_null($this->userConfig->get('org_id'))) {
-            //throw new InvalidArgumentException('Missing Config -- [org_id]');
 
+        if (is_null($this->userConfig->get('app_id'))) {
+            throw new InvalidArgumentException('Missing Config -- [app_id]');
         }
-        if (is_null($this->userConfig->get('mno'))) {
-            //throw new InvalidArgumentException('Missing Config -- [mno]');
-
-        }
-        if (is_null($this->userConfig->get('sxf_pub_key'))) {
-            //throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
+        if (is_null($this->userConfig->get('private_key'))) {
+            throw new InvalidArgumentException('Missing Config -- [private_key]');
 
         }
 
-        if (!empty($config['cache_path'])) {
-            HttpService::$cachePath = $config['cache_path'];
-        }
-        $this->userConfig['private_key'] = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
         $this->config = [
-            'app_id' => '663101000017582', // 商户支付号
-            'sub_app_id' => '', // 子商户号
+            'app_id' => '', // 商户支付号 // 代理商
+            'sub_app_id' => '', // 子商户号 //  商户
             'method' => '', // 方法 trade.percreate
             'charset' => 'UTF-8', // 编码
             'sign_type' => 'RSA', // 签名串
@@ -124,18 +113,16 @@ abstract class Sandpay extends GatewayInterface
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
 
-        if (!isset($result['code']) || $result['code'] !== '200') {
-            return $result;
-        }
         //关单
         if (isset($response['sub_code']) || $response['sub_code'] === 'CLOSE_SUCCESS') {
             return $response_data;
         }
 
-        if (!isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS' || (!isset($response['return_code']) || $response['return_code'] !== 'SUCCESS')) {
+        if (!isset($result['code']) || $result['code'] !== '200' || !isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS' || (!isset($response['return_code']) || $response['return_code'] !== 'SUCCESS')) {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = 'error';
-            $response_data['err_code_des'] = '';
+            $response_data['err_code_des'] = $result['msg'];
+            $response_data['return_msg'] = 'error';
         }
         return $response_data;
     }
