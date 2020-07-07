@@ -41,6 +41,8 @@ abstract class Sandpay extends GatewayInterface
 
     protected $privateKey = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
 
+    protected $publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDRamiEs847/Pft/M+xB5/TwxuiOYzVEFh0/zQ44KOKjYmb0C7YZW6TSCzBidysKiNkw8qI0YcDDQAS4c5mKEk5WLNzZKMEbvEvy+xUg7tdZBUaklPzse7bGCDCQCwzl1dXgWeZhH6s9vGCQPL6Lmk9vNyTGqKm2rxitDe4uw9QWQIDAQAB";
+
     /**
      * Wechat constructor.
      * @param array $config
@@ -352,33 +354,47 @@ abstract class Sandpay extends GatewayInterface
      */
     public function getNotify()
     {
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = $_GET;
+//        $data = [
+//            "app_id"=>"552018071901179",
+//            "bank_order_no"=>"551808166435673987681113091",
+//            "bank_trx_no"=>"20180816095058384099",
+//            "notify_type"=>"trade_status_sync",
+//            "out_order_no"=>"1534384254834",
+//            "pay_amount"=>"0.01",
+//            "pay_success_time"=>"20180816095048",
+//            "plat_trx_no"=>"541808166435673987681113094",
+//            "settle_amount"=>"0.01",
+//            "sign_type"=>"RSA",
+//            "trade_status"=>"SUCCESS",
+//            "sign"=>"OLUnaUiXFnqjO4ThGdL4w8fTHL7M5zwH7JmmfHow3BWm2dthcx7ydlnlgSKa2Q2ixOZLYFagrmC2PeWRG7X iSWvrT4wDJMYVfR5o58m/i2f"
+//        ];
         if (!empty($data['sign'])) {
             $sign = $data['sign'];
             unset($data['sign']);
-            if (!$this->verify($this->getSignContent($data), $sign, $this->userConfig->get('sxf_pub_key'))) {
+            if (!$this->verify($this->getSignContent($data), $sign, $this->publicKey)) {
                 throw new \Exception('Invalid Notify Sign is error.', '0');
             }
             $return = [
-                'return_code' => 'SUCCESS', //通信结果
-                'return_msg' => $data['bizMsg'],
-                'result_code' => $data['bizCode'] == '0000' ? 'SUCCESS' : 'FAIL',
-                'appid' => '',
+                'return_code' => $data['return_code'], //通信结果
+                'return_msg' => "SUCCESS",
+                'result_code' => $data['sub_code'],
+                'appid' => $data['app_id'],
                 'mch_id' => '',
                 'device_info' => '',
                 'nonce_str' => '',
                 'sign' => $sign,
-                'openid' => $data['buyerId'] ?? $data['openid'],
+                'openid' => $data['buyer_id'] ?? $data['buyer_id'],
                 'is_subscribe' => '',
                 'trade_type' => 'trade_type',
                 'bank_type' => '',
-                'total_fee' => ToolsService::ncPriceYuan2fen($data['amt']),  //分
-                'transaction_id' => $data['transactionId'],
-                'out_trade_no' => $data['ordNo'],
+                'total_fee' => ToolsService::ncPriceYuan2fen($data['pay_amount']),  //分
+                'transaction_id' => $data['plat_trx_no'], // 平台交易流水号
+                'out_trade_no' => $data['out_order_no'], // 商户订单号
                 'attach' => '',
                 //'time_end'       => ToolsService::format_time($data['payTime']),
-                'time_end' => $data['payTime'],
-                'trade_state' => ($data['bizMsg'] == '交易成功') ? 'SUCCESS' : 'FAIL',
+                'time_end' => $data['pay_success_time'],
+                'trade_state' => ($data['trade_status'] == 'SUCCESS') ? 'SUCCESS' : 'FAIL',
                 'raw_data' => $data
             ];
             if ($data['bizCode'] !== '0000') {
@@ -387,7 +403,7 @@ abstract class Sandpay extends GatewayInterface
             }
             return $return;
         }
-        exit();
+        exit(); // 当商户收到回调通知时，应返回Http状态码200且返回响应体SUCCESS，如返回其他值，平台将多次重复进行通知
     }
 
     public function rsaSign($params, $signType = "RSA")
