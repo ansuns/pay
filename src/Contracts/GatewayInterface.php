@@ -56,7 +56,6 @@ abstract class GatewayInterface
      */
     public function post($url, $data, $options = [])
     {
-        file_put_contents('./getResult.txt', $data . PHP_EOL, FILE_APPEND);
-        return \Ansuns\Pay\Service\HttpService::get_instance()->post($url, $data, $options);
+        return \Ansuns\Pay\Service\HttpService::get_instance()->post($url, $data, $options)->get_body();
     }
 }

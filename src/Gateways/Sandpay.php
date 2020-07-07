@@ -4,10 +4,8 @@ namespace Ansuns\Pay\Gateways;
 
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
-use Ansuns\Pay\Contracts\HttpService;
-use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
-use Ansuns\Pay\Exceptions\InvalidArgumentException;
+use Ansuns\Pay\Service\HttpService;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
@@ -63,27 +61,23 @@ abstract class Sandpay extends GatewayInterface
             //throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
 
         }
-        if (is_null($this->userConfig->get('cooprator_pri_key'))) {
-            //throw new InvalidArgumentException('Missing Config -- [cooprator_pri_key]');
-            
-        }
-        if (is_null($this->userConfig->get('cooprator_pub_key'))) {
-            //throw new InvalidArgumentException('Missing Config -- [cooprator_pub_key]');
-        }
+
         if (!empty($config['cache_path'])) {
             HttpService::$cachePath = $config['cache_path'];
         }
         $this->userConfig['private_key'] = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANFqaISzzjv89+38z7EHn9PDG6I5jNUQWHT/NDjgo4qNiZvQLthlbpNILMGJ3KwqI2TDyojRhwMNABLhzmYoSTlYs3NkowRu8S/L7FSDu11kFRqSU/Ox7tsYIMJALDOXV1eBZ5mEfqz28YJA8vouaT283JMaoqbavGK0N7i7D1BZAgMBAAECgYEAuIEk9w4oPSgjFJYyMsoB4iQ7m5FS6IHPPb1/uEELNc6AGDyymUu8wZzMefRJ7ZHuvx/VuPfKGUEB+KDkJZOG9pwXdAu6hLJS7iUpaK/JbS0DqOtRlFHnNft4YD50tWp/dZr7zNEvcwkRbS5OZJDRZ3IOCf76Z/q7vXimm27eL5UCQQDzL5xRGb0kddBkGjzMQ7IJ04hl2VkaaHBkqLrmIm9OxTeA+0tH17+AXvr2xbhXb4sOqUmmThB3YCTqowDD6NHDAkEA3HNDKFhTR7MEQCDy/OkJVFaIhr6gKavvMicYQx3fprAIlx+cG8xHlR4maHkxHqdEeP/hFCe5YJ3+uy0EPAF3swJBAINEv+xHKIH11ncycn8QS5piRM41dJN8rK6pJbnz/IFYk41cGFa/bu+sVWu/brJD05wmZUsP+HN3wnWlZ1RY6GECQG10AQUYDYlM1bBta5essIgiSrj0DpuCFUoGZSJ1w6SERE+cTyryGxxrktBOU9gPXozhJsSWEJFrAJ24dSDB7ccCQQCWX34oHvbVzLrsfCnQSRDP4HvFoJwQLHTDcP5ujvUnWd8rUNkflxt7Gfgr7sO5dMksMurGxSx4jcZr7TwE77Z8';
         $this->config = [
-            'app_id' => '663101000017582',
-            'sub_app_id' => '',
+            'app_id' => '663101000017582', // 商户支付号
+            'sub_app_id' => '', // 子商户号
+            'method' => '', // 方法 trade.percreate
+            'charset' => 'UTF-8', // 编码
+            'sign_type' => 'RSA', // 签名串
+            'sing' => '',//  签名串
             'timestamp' => date('Y-m-d H:i:s'),
-            'format' => 'JSON',
-            'charset' => 'UTF-8',
-            'sign_type' => 'RSA',
-            'nonce' => $this->createNonceStr(),
-            'version' => '1.0',
-            'biz_content' => [],
+            'nonce' => $this->createNonceStr(), // 请求端随机生成数
+            'version' => '1.0', // 接口版本
+            'format' => 'JSON',// 业务参数请求格式
+            'biz_content' => [], // 业务参数
         ];
     }
 
@@ -98,30 +92,6 @@ abstract class Sandpay extends GatewayInterface
         return $this;
     }
 
-    protected function curl($url, $data)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_FAILONERROR, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        $headers = array('content-type: application/json');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        $reponse = curl_exec($ch);
-        if (curl_errno($ch)) {
-            throw new Exception(curl_error($ch), 0);
-        } else {
-            $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if (200 !== $httpStatusCode) {
-                throw new Exception($reponse, $httpStatusCode);
-            }
-        }
-
-        curl_close($ch);
-        return $reponse;
-    }
-
     /**
      * 获取验证访问数据
      * @return array
@@ -134,24 +104,27 @@ abstract class Sandpay extends GatewayInterface
         $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
         $url = $this->gateway;
         $header = ['Content-Type: application/json'];
-        $result = $this->curl($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-
+        file_put_contents('./result.txt', json_encode($result) . PHP_EOL, FILE_APPEND);
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }
+
         $response_data = [];
         $response = isset($result['data']) ? json_decode($result['data'], true) : [];
         $response_data = array_merge($response_data, $response);
+
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS') {
+        if (!isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS' || (!isset($response['return_code']) || $response['return_code'] !== 'SUCCESS')) {
             $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = '';
+            $response_data['err_code'] = 'error';
             $response_data['err_code_des'] = '';
         }
         return $response_data;
@@ -234,10 +207,9 @@ abstract class Sandpay extends GatewayInterface
      */
     public function close($out_trade_no = '', $reason = '')
     {
-        $this->service = "/close";
-        $this->config['outTradeNo'] = $out_trade_no;
-        $this->config['reason'] = $reason;
-        $this->config['merchantCode'] = $this->userConfig->get('merchant_no');
+        $this->setReqData(['out_order_no' => $out_trade_no]);
+        $this->config['method'] = "trade.close";
+        $this->config['extend_params'] = ['reason' => 'order close']; // JSON格式，与下游额外约定的特殊参数
         return $this->getResult();
     }
 
@@ -262,6 +234,7 @@ abstract class Sandpay extends GatewayInterface
 
     protected function buildPayResult($data)
     {
+
         $return = [
             'return_code' => $data['return_code'], //通信结果
             'return_msg' => $data['return_msg'],
@@ -275,13 +248,13 @@ abstract class Sandpay extends GatewayInterface
             'is_subscribe' => '',
             'trade_type' => isset($data['payType']) ? $data['payType'] : '',
             'bank_type' => '',
-            'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
+            //'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
             'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
             'out_trade_no' => isset($data['ordNo']) ? $data['ordNo'] : '',
             'attach' => '',
-            //'time_end'       => ToolsService::format_time($data['payTime']),
             'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
             'trade_state' => isset($data['tranSts']) ? $data['tranSts'] : $data['result_code'],
+            'qr_code' => isset($data['qr_code']) ? $data['qr_code'] : '',
             'raw_data' => $data
         ];
         return $return;

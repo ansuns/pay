@@ -65,14 +65,6 @@ class Pay
         if ($this->pay_parameter) {
             return $this->pay_parameter;
         }
-
-//        $pay_parameter                       = $parameter['parameter'];
-//        $pay_parameter['pay_parameter_guid'] = $parameter['guid'];
-//        if ($this->debug) {
-//            $pay_parameter['debug'] = true;
-//        }
-//        $this->class         = $parameter['class'];
-//        $this->pay_parameter = $pay_parameter;
         return $this->pay_parameter;
     }
 
@@ -90,10 +82,11 @@ class Pay
         return $this;
     }
 
+
     /**
      * 指定操作网关
      * @param string $gateway
-     * @return \Pays\Contracts\GatewayInterface|\Pays\Gateways\Lianfutong|\Pays\Gateways\Wechat|\Pays\Gateways\Alipay
+     * @return mixed
      */
     public function gateway($gateway = 'web')
     {

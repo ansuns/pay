@@ -2,6 +2,7 @@
 
 namespace Ansuns\Pay\Service;
 
+use Ansuns\Pay\Exceptions\Exception;
 
 /**
  * HTTP请求封装
@@ -110,12 +111,17 @@ class HttpService
         return $this->curl_exec();
     }
 
+
     /**
-     * @access public
-     * @return $this
+     * @param $url
+     * @param array $data
+     * @param $opitons
+     * @return HttpService|bool|mixed
+     * @throws \Exception
      */
-    public function post($url, $data = array())
+    public function post($url, $data = array(), $opitons = [])
     {
+        $this->set_header($opitons);
         $this->opts[CURLOPT_POST] = true;
         $this->set_url($url);
         $this->set_method(__FUNCTION__);
@@ -394,19 +400,6 @@ class HttpService
         return $this;
     }
 
-    protected function is_require_log($result)
-    {
-        //错误信息中包含名单则不通知
-        $list = config('not_log_url');
-        $array = explode(',', $list);
-        foreach ($array as $val) {
-            if (stripos($result, $val) !== false) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public function get_response()
     {
         return $this->response;
@@ -498,25 +491,6 @@ class HttpService
         return false;
     }
 
-    /**
-     * 0延迟执行异步
-     *
-     * @param string $url *  http请求的网址
-     * @param array $data *  所带的参数
-     * @return bool
-     */
-    function triggerRequest($url, $data = [])
-    {
-        if (empty($data)) {
-            $data = ['timestamp' => time()];
-        }
-        $config = ['url' => $url, 'asyn' => true];
-        $obj = new \OpenApi\Fsockopen();
-        $obj->setConfig($config);
-        $obj->setFormData($data);
-        return $obj->get();
-    }
-
     function curlDownloadImg($remote, $cookies = null)
     {
         $mimes = [
@@ -532,7 +506,7 @@ class HttpService
             $type = $headers['Content-Type'];
             //不是图片类型
             if (empty($mimes[$type])) {
-                wr_log('发现未知图片类型:' . $type);
+                //wr_log('发现未知图片类型:' . $type);
                 return false;
             }
             $extension = $mimes[$type];
