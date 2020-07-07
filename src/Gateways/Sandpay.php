@@ -58,8 +58,8 @@ abstract class Sandpay extends GatewayInterface
         }
 
         $this->config = [
-            'app_id' => '', // 商户支付号 // 代理商
-            'sub_app_id' => '', // 子商户号 //  商户
+            'app_id' => $this->userConfig->get('app_id'), // 商户支付号 // 代理商
+            'sub_app_id' => $this->userConfig->get('sub_app_id'), // 子商户号 //  商户
             'method' => '', // 方法 trade.percreate
             'charset' => 'UTF-8', // 编码
             'sign_type' => 'RSA', // 签名串
@@ -100,7 +100,7 @@ abstract class Sandpay extends GatewayInterface
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        //file_put_contents('./result.txt', json_encode($result) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$this->config, $result]) . PHP_EOL, FILE_APPEND);
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }
@@ -111,19 +111,20 @@ abstract class Sandpay extends GatewayInterface
 
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-
-        //关单
-        if (isset($response['sub_code']) || $response['sub_code'] === 'CLOSE_SUCCESS') {
-            return $response_data;
-        }
-
-        if (!isset($result['code']) || $result['code'] !== '200' || !isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS' || (!isset($response['return_code']) || $response['return_code'] !== 'SUCCESS')) {
+        $response_data['return_msg'] = $response_data['msg'] ?? 'OK!';
+        $response_data['sub_code'] = $response_data['sub_code'] ?? 'SUCCESS';
+        $response_data['sub_msg'] = $response_data['sub_msg'] ?? '交易成功';
+        $code = $result['code'] ?? '200';
+        if ($code !== '200') {
+            $response_data['sub_code'] = $result['sub_code'] ?? 'ERROR';
+            $response_data['sub_msg'] = $result['sub_msg'] ?? '失败';
             $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = 'error';
-            $response_data['err_code_des'] = $result['msg'];
-            $response_data['return_msg'] = 'error';
+            $response_data['err_code'] = 'ERROR';
+            $response_data['err_code_des'] = $result['msg'] ?? 'ERROR:交易失败';
+            $response_data['return_msg'] = 'ERROR';
+
         }
+
         return $response_data;
     }
 
