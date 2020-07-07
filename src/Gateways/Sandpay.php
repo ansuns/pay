@@ -99,18 +99,17 @@ abstract class Sandpay extends GatewayInterface
      */
     protected function getResult()
     {
-        $this->config['method'] = $this->getTradeType();
+
         $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
         $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
-        $url = $this->gateway;
         $header = ['Content-Type: application/json'];
-        $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        file_put_contents('./result.txt', json_encode($result) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode($result) . PHP_EOL, FILE_APPEND);
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }
@@ -122,6 +121,15 @@ abstract class Sandpay extends GatewayInterface
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
+
+        if (!isset($result['code']) || $result['code'] !== '200') {
+            return $result;
+        }
+        //关单
+        if (isset($response['sub_code']) || $response['sub_code'] === 'CLOSE_SUCCESS') {
+            return $response_data;
+        }
+
         if (!isset($response['sub_code']) || $response['sub_code'] !== 'SUCCESS' || (!isset($response['return_code']) || $response['return_code'] !== 'SUCCESS')) {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = 'error';
@@ -138,68 +146,47 @@ abstract class Sandpay extends GatewayInterface
      */
     public function refund($options = [])
     {
-        $this->service = "/qr/refund";
+        // 采用相同的退款订单号退款，仅会成功退款一笔，均返回退款成功
         $this->setReqData([
-            'ordNo' => $options['out_refund_no'],
-            'origOrderNo' => $options['out_trade_no'],
-            'amt' => ToolsService::ncPriceFen2yuan($options['refund_fee']),
+            'out_order_no' => $options['out_order_no'], // 商户订单号
+            'refund_amount' => $options['refund_amount'],//退款金额，单位元
+            'refund_request_no' => $options['refund_request_no'],//商户退款请求号，同一订单退款不可重复
+            'extend_params' => [
+                'reason' => 'order refund'
+            ]
         ]);
-        $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            $return = [
-                'return_code' => $data['return_code'], //通信结果
-                'return_msg' => $data['return_msg'],
-                'result_code' => $data['result_code'],
-                'appid' => isset($data['appId']) ? $data['appId'] : '',
-                'mch_id' => '',
-                'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-                'sign' => isset($data['sign']) ? $data['sign'] : '',
-                'out_refund_no' => $data['ordNo'],
-                'out_trade_no' => $data['origOrderNo'],
-                'refund_id' => '',
-                'transaction_id' => '',
-                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
-                'raw_data' => $data
-            ];
-            return $return;
-        }
-        return $data;
+        $this->config['method'] = "trade.refund";
+
+        // JSON格式，与下游额外约定的特殊参数
+        return $this->getResult();
     }
 
+
     /**
-     * 查询退款订单状态
-     * @param string $out_trade_no
+     * 仅用于退款查询，关单及撤销重新发起即可
+     * @param array $options
      * @return array
      * @throws GatewayException
      */
-    public function refund_find($out_trade_no = '')
+    public function refund_find($options = [])
     {
-        $this->service = "/qr/tradeRefundQuery";
-        $this->setReqData(['ordNo' => $out_trade_no]);
-        $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            $return = [
-                'return_code' => $data['return_code'], //通信结果
-                'return_msg' => $data['return_msg'],
-                'result_code' => $data['result_code'],
-                'appid' => isset($data['appId']) ? $data['appId'] : '',
-                'mch_id' => '',
-                'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-                'sign' => isset($data['sign']) ? $data['sign'] : '',
-                'out_refund_no' => $data['ordNo'],
-                'out_trade_no' => $out_trade_no,
-                'refund_id' => '',
-                'transaction_id' => '',
-                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
-                'raw_data' => $data
-            ];
-            return $return;
-        }
-        return $data;
+        // 采用相同的退款订单号退款，仅会成功退款一笔，均返回退款成功
+        $this->setReqData([
+            'out_order_no' => $options['out_order_no'], // 商户订单号
+            'refund_amount' => $options['refund_amount'],//退款金额，单位元
+            'refund_request_no' => $options['refund_request_no'],//商户退款请求号，同一订单退款不可重复
+            'extend_params' => [
+                'reason' => 'order refund query'
+            ]
+        ]);
+        $this->config['method'] = "trade.refund.query";
+
+        // JSON格式，与下游额外约定的特殊参数
+        return $this->getResult();
     }
 
     /**
-     * 关闭正在进行的订单
+     * 仅用于二维码预下单且未支付的订单
      * @param string $out_trade_no
      * @param string $reason
      * @return array
@@ -207,9 +194,15 @@ abstract class Sandpay extends GatewayInterface
      */
     public function close($out_trade_no = '', $reason = '')
     {
-        $this->setReqData(['out_order_no' => $out_trade_no]);
+        $this->setReqData([
+            'out_order_no' => $out_trade_no,
+            'extend_params' => [
+                'reason' => 'order close'
+            ]
+        ]);
         $this->config['method'] = "trade.close";
-        $this->config['extend_params'] = ['reason' => 'order close']; // JSON格式，与下游额外约定的特殊参数
+
+        // JSON格式，与下游额外约定的特殊参数
         return $this->getResult();
     }
 
@@ -221,14 +214,39 @@ abstract class Sandpay extends GatewayInterface
      */
     public function find($out_trade_no = '')
     {
-        $this->service = "/qr/query";
-        $this->setReqData(['ordNo' => $out_trade_no]);
+        $this->setReqData([
+            'out_order_no' => $out_trade_no,
+            'extend_params' => [
+                'reason' => 'order query'
+            ]
+        ]);
+        $this->config['method'] = "trade.query";
         $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            return $this->buildPayResult($data);
-        }
-        $trade_state = $data['tranSts'] ?? 'FAIL';
-        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+//        $trade_state = $data['sub_code'] ?? 'FAIL';
+//        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+        return $data;
+    }
+
+    /**
+     * @param string $out_trade_no
+     * @return array
+     * @throws GatewayException
+     */
+    public function cancel($options = [])
+    {
+//        $options = [
+//            "out_order_no" => "23423423432423432",//订单号三选一必填30商户订单号123456
+//            "plat_trx_no" => "6661809266450551869771371523",//订单号三选一必填32平台交易流水号
+//            "bank_order_no" => "HMP2001176623767551967834112",//订单号三选一必填32银行订单号，平台送给渠道的商户订单
+//            "store_id" => "",//否8门店号100001
+//            "terminal_id" => "32",//否终端号10000
+//            "operator_id" => "10000",//否8操作员号10000
+//            "req_reserved" => "",//商户自定义字段
+//            "extend_params" => []//-JSON格式，与下游额外约定的特殊参数
+//        ];
+        $this->setReqData($options);
+        $this->config['method'] = "trade.cancel";
+        $data = $this->getResult();
         return $data;
     }
 

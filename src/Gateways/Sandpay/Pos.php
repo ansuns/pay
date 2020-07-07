@@ -31,6 +31,7 @@ class Pos extends Sandpay
      */
     public function apply(array $options = [])
     {
+        $this->config['method'] = $this->getTradeType();
         $this->setReqData($options);
         $result = $this->getResult();
         if ($this->isSuccess($result)) {
