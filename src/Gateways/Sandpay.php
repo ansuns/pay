@@ -51,6 +51,12 @@ abstract class Sandpay extends GatewayInterface
     protected $gateway_agent = 'https://hmpay.sandpay.com.cn/agent-api/api';
 
     /**
+     * 商户报备测试地址
+     * @var string
+     */
+    protected $gateway_agent_test = 'http://star.sandgate.cn/agent-api/api';
+
+    /**
      * 图片上传生产地址
      * @var string
      */
@@ -74,6 +80,7 @@ abstract class Sandpay extends GatewayInterface
 
         $env = $config['env'] ?? 'pro';
         $this->gateway = $env != 'pro' ? $this->gateway_test : $this->gateway;
+        $this->gateway_agent = $env != 'pro' ? $this->gateway_agent_test : $this->gateway_agent;
 
         $this->config = [
             'app_id' => $this->userConfig->get('app_id'), // 商户支付号 // 代理商
@@ -81,7 +88,7 @@ abstract class Sandpay extends GatewayInterface
             'method' => '', // 方法 trade.percreate
             'charset' => 'UTF-8', // 编码
             'sign_type' => 'RSA', // 签名串
-            'sing' => '',//  签名串
+            'sign' => '',//  签名串
             'timestamp' => date('Y-m-d H:i:s'),
             'nonce' => $this->createNonceStr(), // 请求端随机生成数
             'version' => '1.0', // 接口版本
@@ -178,7 +185,8 @@ abstract class Sandpay extends GatewayInterface
         $this->config['method'] = "trade.refund";
 
         // JSON格式，与下游额外约定的特殊参数
-        return $this->getResult();
+        $data = $this->getResult();
+
     }
 
 
