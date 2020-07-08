@@ -31,14 +31,30 @@ abstract class Sandpay extends GatewayInterface
     protected $userConfig;
 
     /**
+     * 交易生产环境地址
      * @var string
      */
-    protected $gateway = 'https://hmpay.sandpay.com.cn/gateway_t/api';
+    protected $gateway = 'https://hmpay.sandpay.com.cn/gateway/api';
+
 
     /**
+     * 交易预发布环境地址
      * @var string
      */
-    protected $gateway_query = 'https://api.mch.weixin.qq.com/pay/orderquery';
+    protected $gateway_test = 'https://hmpay.sandpay.com.cn/gateway_t/api';
+
+
+    /**
+     * 商户报备生产地址
+     * @var string
+     */
+    protected $gateway_agent = 'https://hmpay.sandpay.com.cn/agent-api/api';
+
+    /**
+     * 图片上传生产地址
+     * @var string
+     */
+    protected $gateway_upload = 'https://hmpay.sandpay.com.cn/agent-api/api/upload/pic';
 
     /**
      * Wechat constructor.
@@ -54,8 +70,10 @@ abstract class Sandpay extends GatewayInterface
         }
         if (is_null($this->userConfig->get('private_key'))) {
             throw new InvalidArgumentException('Missing Config -- [private_key]');
-
         }
+
+        $env = $config['env'] ?? 'pro';
+        $this->gateway = $env != 'pro' ? $this->gateway_test : $this->gateway;
 
         $this->config = [
             'app_id' => $this->userConfig->get('app_id'), // 商户支付号 // 代理商
@@ -116,13 +134,25 @@ abstract class Sandpay extends GatewayInterface
         $response_data['sub_msg'] = $response_data['sub_msg'] ?? '交易成功';
         $code = $result['code'] ?? '200';
         if ($code !== '200') {
+            $msg = [
+                "200" => "网关请求成功，请判断业务返回码",
+                "210" => "响应签名生成异常",
+                "403" => "权限不足",
+                "410" => "参数验证失败",
+                "413" => "验签异常",
+                "510" => "未知错误",
+                "511" => "业务错误",
+                "512" => "网关错误",
+                "555" => "初始状态",
+            ];
+
             $response_data['sub_code'] = $result['sub_code'] ?? 'ERROR';
-            $response_data['sub_msg'] = $result['sub_msg'] ?? '失败';
+            $response_data['sub_msg'] = $result['msg'] ?? '失败';
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = 'ERROR';
             $response_data['err_code_des'] = $result['msg'] ?? 'ERROR:交易失败';
-            $response_data['return_msg'] = 'ERROR';
-
+            $response_data['return_msg'] = 'ERROR:' . $msg[$code] ?? "unknow error!";
+            return $response_data;
         }
 
         return $response_data;
@@ -472,5 +502,10 @@ abstract class Sandpay extends GatewayInterface
         unset($this->config['notify_url']);
         unset($this->config['trade_type']);
         return true;
+    }
+
+    public function upload()
+    {
+
     }
 }

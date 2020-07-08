@@ -7,6 +7,7 @@ use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Gateways\Sandpay;
+use Ansuns\Pay\Service\ToolsService;
 
 /**
  * 商户配置
@@ -28,60 +29,347 @@ class Mch extends Sandpay
         return $this->getResult($this->gateway_query);
     }
 
-    /**
-     * 查询进件信息
-     * @param string $task_code
-     * @return mixed
-     * @throws Exception
-     * @throws GatewayException
-     */
-    public function bind_config(string $appid)
-    {
-        $this->service = "/weChat/bindconfig";
-        $this->setReqData([
-            'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
-            'subAppid' => $appid,//必传
-        ]);
-        $result = $this->getResult();
-    }
 
     /**
-     * 查询进件信息
-     * @param string $task_code
-     * @return mixed
-     * @throws Exception
-     * @throws GatewayException
-     */
-    public function query_qrcode_product_info(string $task_code)
-    {
-        $this->service = "/MerchIncomeQuery/queryQrcodeProductInfo";
-        $this->setReqData([
-            'taskCode' => $task_code,
-        ]);
-        $result = $this->getResult();
-        $data = [];
-        if (!empty($result['repoInfo'])) {
-            foreach ($result['repoInfo'] as $info) {
-                if ($info['childNoType'] == 'WX') {
-                    $data['mno'] = $info['mno'];
-                    $data['sub_mch_id'] = $info['childNo'];
-                }
-            }
-        }
-        return $data ?: $result;
-    }
-
-    /**
-     * 查询订单状态
-     * @param string $out_trade_no 商户订单号
+     * 商户入驻
+     * @param array $opitions
      * @return array
      * @throws GatewayException
      */
-    public function find($out_trade_no = '')
+    public function merchantCreate(array $opitions)
     {
-        //todo
-        return $this->getResult($this->gateway_query);
+
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.create";
+        $data = $this->getResult();
+        return $data;
+
     }
+
+    public function storeCreate(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.store.create";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 查询商户信息和门店信息
+     * @param array $opitions
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantQuery(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.query";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 服务商为其商户设置费率，可以新增费率，修改费率
+     * @param array $opitions
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantRateSet(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.rate.set";
+        $data = $this->getResult();
+        return $data;
+    }
+
+
+    /**
+     * 服务商查询商户已设置的费率
+     * @param $sub_merchant_id
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantRateQuery($sub_merchant_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id]);
+        $this->config['method'] = "merchant.rate.query";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    public function merchantBankBind(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.bank.bindy";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 商户补进件、信息变更
+     * 服务商为其商户进行补进件、信息变更，图片地址使用接口图片上传获取
+     * 商户绑卡前或审核未通过可以进行补进件，此时修改的信息会立即生效
+     * 商户绑卡后需等待审核通过后才可进行信息变更，信息变更需等待再次审核通过后才会生效
+     * @param array $opitions
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantModify(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.modify";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 服务商为其商户门店进行补进件、信息变更，图片地址使用接口图片上传获取
+     * 门店审核前或审核未通过可以进行补进件，此时修改的信息会立即生效
+     * 门店审核通过后可以进行信息变更，信息变更需等待再次审核通过后才会生效
+     * @param array $opitions
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantStoreModify(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "merchant.store.modify";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 渠道入驻
+     * 服务商为其商户入驻渠道
+     * @param array $opitions
+     * @return array
+     * @throws GatewayException
+     */
+    public function channelRegister(array $opitions)
+    {
+        $this->setReqData($opitions);
+        $this->config['method'] = "channel.register";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 服务商查询商户渠道入驻信息
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $store_no 门店编号
+     * @return array
+     * @throws GatewayException
+     */
+    public function channelRegisterQuery($sub_merchant_id, $store_no)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id, 'store_no' => $store_no]);
+        $this->config['method'] = "channel.register.query";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 商户新增支付授权目录
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $jsapi_path 特约商户公众账号JS API支付授权目录 ，要求符合URI格式规范，每次添加一个支付目录，最多5个
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantAddPayPath($sub_merchant_id, $jsapi_path)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id, 'jsapi_path' => $jsapi_path]);
+        $this->config['method'] = "merchant.add.pay.path";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $sub_appid 微信APPID
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantBindWechatAppid($sub_merchant_id, $sub_appid)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id, 'sub_appid' => $sub_appid]);
+        $this->config['method'] = "merchant.bind.wechat.appid";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 商户微信关注配置
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $sub_appid 绑定的微信APPID 该字段视支付接口中是否传sub_appid而定，如果没有填sub_appid,此处请填值NULL，否则请填写绑定特约商户或渠道公众号、小程序、APP支付等对应的APPID
+     * @param string $subscribe_appid 推荐关注APPID 特约商户或渠道的公众号APPID
+     * @param string $receipt_appid 支付凭证推荐小程序APPID 需为通过微信认证的小程序APPID，且认证主体与渠道商或子商户一致
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantAddRecomConf($sub_merchant_id, $sub_appid, $subscribe_appid = '', $receipt_appid = '')
+    {
+        $data = [
+            'sub_merchant_id' => $sub_merchant_id, 'sub_appid' => $sub_appid
+        ];
+        if ($subscribe_appid) {
+            $data['subscribe_appid'] = $subscribe_appid;
+        } else {
+            $data['receipt_appid'] = $receipt_appid;
+        }
+        $this->setReqData($data);
+        $this->config['method'] = "merchant.add.recom.conf";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 商户微信配置查询
+     * 服务商为其商户查询微信配置
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @return array
+     * @throws GatewayException
+     */
+    public function merchantWechatConfigQuery($sub_merchant_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id]);
+        $this->config['method'] = "merchant.wechat.config.query";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 提交微信实名认证申请单
+     * 服务商提交商户微信实名认证申请单
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @return array
+     * @throws GatewayException
+     */
+    public function wechatauthApplyment($sub_merchant_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id]);
+        $this->config['method'] = "wechat.auth.applyment";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 撤销微信实名认证申请单
+     * 服务商提交申请单后需要修改信息时，或者申请单审核结果为"已驳回"时服务商要修改申请材料时，均需要先调用撤销申请单接口
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $applyment_id 申请单编号
+     * @return array
+     * @throws GatewayException
+     */
+    public function wechatApplymentCancel($sub_merchant_id, $applyment_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id, 'applyment_id' => $applyment_id]);
+        $this->config['method'] = "wechat.applyment.cancel";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 获取申请单审核结果
+     * 服务商提交申请单后，需要定期调用此接口查询申请单的审核状态
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @param $applyment_id 申请单编号
+     * @return array
+     * @throws GatewayException
+     */
+    public function wechatApplymentResult($sub_merchant_id, $applyment_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id, 'applyment_id' => $applyment_id]);
+        $this->config['method'] = "wechat.applyment.result";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 获取商户微信授权状态
+     * 服务商获取商户微信实名认证授权状态
+     * @param $sub_merchant_id 河马付商户号，平台为商户分配的惟一ID，商户入驻后，由平台返回
+     * @return array
+     * @throws GatewayException
+     */
+    public function wechatAuthorizeState($sub_merchant_id)
+    {
+        $this->setReqData(['sub_merchant_id' => $sub_merchant_id]);
+        $this->config['method'] = "wechat.authorize.state";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 查询对账单下载地址
+     * 服务商或商户查询对账单下载地址，将根据公参中的app_id来获取对应的对账单
+     * 只能获取2020-04-10日之后的对账单
+     * 只能获取三个月之内的对账单
+     * 建议每天上午十点后获取对账单，对账单文件字符编码为GBK
+     * @param string $bill_date 账单时间，格式：yyyy-MM-dd
+     * @return array
+     * @throws GatewayException
+     */
+    public function billDownloadUrlQuery($bill_date = '')
+    {
+        $bill_date = $bill_date ?? date('Y-m-d', time());
+        $this->setReqData(['bill_date' => $bill_date]);
+        $this->config['method'] = "bill.download.url.query";
+        $data = $this->getResult();
+        return $data;
+    }
+
+    /**
+     * 商户审核回调通知
+     * 商户初审、商户变更审核、门店初审、门店变更审核回调通知
+     * 需进行验签以防止伪造通知
+     * 商户的回调地址需事先报备
+     * 回调通知可能会新增字段，需保证验签兼容
+     * 回调通知请求Http Method=POST，Content-Type=application/json
+     * 重复通知: 收到回调通知时，应返回Http状态码200且返回响应体SUCCESS，如返回其他值，平台将多次重复进行通知
+     * @return array
+     * @throws \Exception
+     */
+    public function merchantNotify()
+    {
+        $data = $_POST;
+        if (!empty($data['sign'])) {
+            $sign = $data['sign'];
+            unset($data['sign']);
+            if (!$this->verify($this->getSignContent($data), $sign, $this->publicKey)) {
+                throw new \Exception('Invalid Notify Sign is error.', '0');
+            }
+            $return = [
+                'return_code' => $data['return_code'], //通信结果
+                'return_msg' => "SUCCESS",
+                'result_code' => $data['sub_code'],
+                'appid' => $data['app_id'],
+                'mch_id' => '',
+                'device_info' => '',
+                'nonce_str' => '',
+                'sign' => $sign,
+                'openid' => $data['buyer_id'] ?? $data['buyer_id'],
+                'is_subscribe' => '',
+                'trade_type' => 'trade_type',
+                'bank_type' => '',
+                'total_fee' => ToolsService::ncPriceYuan2fen($data['pay_amount']),  //分
+                'transaction_id' => $data['plat_trx_no'], // 平台交易流水号
+                'out_trade_no' => $data['out_order_no'], // 商户订单号
+                'attach' => '',
+                //'time_end'       => ToolsService::format_time($data['payTime']),
+                'time_end' => $data['pay_success_time'],
+                'trade_state' => ($data['trade_status'] == 'SUCCESS') ? 'SUCCESS' : 'FAIL',
+                'raw_data' => $data
+            ];
+            if ($data['bizCode'] !== '0000') {
+                $return['err_code'] = isset($data['subCode']) ? $data['subCode'] : '';
+                $return['err_code_des'] = isset($data['subMsg']) ? $data['subMsg'] : '';
+            }
+            return $return;
+        }
+        exit(); // 当商户收到回调通知时，应返回Http状态码200且返回响应体SUCCESS，如返回其他值，平台将多次重复进行通知
+        return $data;
+    }
+
 
     /**
      * @return string
