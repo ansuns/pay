@@ -83,7 +83,7 @@ abstract class Sandpay extends GatewayInterface
 
         $env = $config['env'] ?? 'pro';
         $this->gateway = $this->gatewayArr[$env];
-        $this->gatewayAgent =$this->gatewayAgentArr[$env];
+        $this->gatewayAgent = $this->gatewayAgentArr[$env];
 
         $this->config = [
             'app_id' => $this->userConfig->get('app_id'), // 商户支付号 // 代理商
@@ -242,14 +242,14 @@ abstract class Sandpay extends GatewayInterface
      * @param string $out_trade_no
      * @return array
      * @throws GatewayException
-     * SUCCESS	交易成功
+     * SUCCESS    交易成功
      *
-     * FINISH	交易完成，订单终结状态，不允许继续操作，视为失败
-     * FAILED	交易失败
-     * CREATED	订单已创建
-     * WAITING_PAYMENT	等待支付
-     * ILLEGAL_ORDER	非法订单
-     * CLOSED	订单已关闭
+     * FINISH    交易完成，订单终结状态，不允许继续操作，视为失败
+     * FAILED    交易失败
+     * CREATED    订单已创建
+     * WAITING_PAYMENT    等待支付
+     * ILLEGAL_ORDER    非法订单
+     * CLOSED    订单已关闭
      */
     public function find($out_trade_no = '')
     {
