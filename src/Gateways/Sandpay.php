@@ -239,6 +239,14 @@ abstract class Sandpay extends GatewayInterface
      * @param string $out_trade_no
      * @return array
      * @throws GatewayException
+     * SUCCESS	交易成功
+     *
+     * FINISH	交易完成，订单终结状态，不允许继续操作，视为失败
+     * FAILED	交易失败
+     * CREATED	订单已创建
+     * WAITING_PAYMENT	等待支付
+     * ILLEGAL_ORDER	非法订单
+     * CLOSED	订单已关闭
      */
     public function find($out_trade_no = '')
     {
@@ -250,8 +258,8 @@ abstract class Sandpay extends GatewayInterface
         ]);
         $this->config['method'] = "trade.query";
         $data = $this->getResult();
-//        $trade_state = $data['sub_code'] ?? 'FAIL';
-//        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+        $data['is_refund'] = $data['is_refund'] ?? false;// 是否有退款
+        $data['message'] = $data['message'] ?? '未知错误';
         return $data;
     }
 
