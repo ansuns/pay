@@ -133,7 +133,7 @@ abstract class Sandpay extends GatewayInterface
         $response_data = [];
         $response = isset($result['data']) ? json_decode($result['data'], true) : [];
         $response_data = array_merge($response_data, $response);
-
+        $response_data['data'] = $response_data;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = $response_data['msg'] ?? 'OK!';
@@ -288,28 +288,26 @@ abstract class Sandpay extends GatewayInterface
 
     protected function buildPayResult($data)
     {
-
         $return = [
             'return_code' => $data['return_code'], //通信结果
             'return_msg' => $data['return_msg'],
             'result_code' => $data['result_code'],
-            'appid' => isset($data['appId']) ? $data['appId'] : '',
+            'appid' => $data['appId'] ?? '',
             'mch_id' => '',
             'device_info' => '',
-            'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-            'sign' => isset($data['sign']) ? $data['sign'] : '',
-            'openid' => isset($data['buyerId']) ? $data['buyerId'] : '',
+            'nonce_str' => $data['nonceStr'] ?? '',
+            'sign' => $data['sign'] ?? '',
+            'openid' => $data['buyer_id'] ?? '',
             'is_subscribe' => '',
-            'trade_type' => isset($data['payType']) ? $data['payType'] : '',
+            'trade_type' => $data['pay_way_code'] ?? '',
             'bank_type' => '',
-            //'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
-            'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
-            'out_trade_no' => isset($data['ordNo']) ? $data['ordNo'] : '',
+            //'total_fee' => ToolsService::ncPriceYuan2fen($data['buyer_pay_amount'] ?? $this->config),  //分
+            'transaction_id' => $data['plat_trx_no'] ?? '',
+            'out_trade_no' => $data['out_order_no'] ?? '',
             'attach' => '',
-            'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
-            'trade_state' => isset($data['tranSts']) ? $data['tranSts'] : $data['result_code'],
-            'qr_code' => isset($data['qr_code']) ? $data['qr_code'] : '',
-            'raw_data' => $data
+            'time_end' => $data['success_time'] ?? '',
+            'trade_state' => $data['tranSts'] ?? $data['result_code'],
+            'qr_code' => $data['qr_code'] ?? '',
         ];
         return $return;
     }
