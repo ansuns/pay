@@ -381,13 +381,13 @@ class Mch extends Sandpay
         $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
         $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
         $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gateway_agent, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        $result = $this->post($this->gatewayAgent, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        file_put_contents('./result22.txt', json_encode([$this->gateway_agent, $this->config, $result]) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result22.txt', json_encode([$this->gatewayAgent, $this->config, $result]) . PHP_EOL, FILE_APPEND);
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }

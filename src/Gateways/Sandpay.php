@@ -36,19 +36,22 @@ abstract class Sandpay extends GatewayInterface
      */
     protected $gateway = 'https://hmpay.sandpay.com.cn/gateway/api';
 
+    protected $gatewayArr = [
+        'dev' => 'http://star.sandgate.cn/gateway/api',// 交易测试(开发)地址
+        'test' => 'https://hmpay.sandpay.com.cn/gateway_t/api',// 交易预发布环境地址
+        'pro' => 'https://hmpay.sandpay.com.cn/gateway/api',// 交易生产环境地址
+    ];
 
-    /**
-     * 交易预发布环境地址
-     * @var string
-     */
-    protected $gateway_test = 'https://hmpay.sandpay.com.cn/gateway_t/api';
-
+    protected $gatewayAgentArr = [
+        'test' => 'http://star.sandgate.cn/agent-api/api',// 商户报备测试地址
+        'pro' => 'https://hmpay.sandpay.com.cn/agent-api/api',// 商户报备生产地址
+    ];
 
     /**
      * 商户报备生产地址
      * @var string
      */
-    protected $gateway_agent = 'https://hmpay.sandpay.com.cn/agent-api/api';
+    protected $gatewayAgent = 'https://hmpay.sandpay.com.cn/agent-api/api';
 
     /**
      * 商户报备测试地址
@@ -79,8 +82,8 @@ abstract class Sandpay extends GatewayInterface
         }
 
         $env = $config['env'] ?? 'pro';
-        $this->gateway = $env != 'pro' ? $this->gateway_test : $this->gateway;
-        $this->gateway_agent = $env != 'pro' ? $this->gateway_agent_test : $this->gateway_agent;
+        $this->gateway = $this->gatewayArr[$env];
+        $this->gatewayAgent =$this->gatewayAgentArr[$env];
 
         $this->config = [
             'app_id' => $this->userConfig->get('app_id'), // 商户支付号 // 代理商
