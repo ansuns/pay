@@ -259,7 +259,7 @@ abstract class Sandpay extends GatewayInterface
         $this->config['method'] = "trade.query";
         $data = $this->getResult();
         $data['is_refund'] = $data['is_refund'] ?? false;// 是否有退款
-        $data['message'] = $data['message'] ?? '未知错误';
+        $data['message'] = $data['sub_msg'] ?? '未知错误';
         return $data;
     }
 
