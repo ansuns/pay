@@ -446,7 +446,7 @@ abstract class Sandpay extends GatewayInterface
         return $this->sign($this->getSignContent($params), $signType);
     }
 
-    protected function getSignContent($params)
+    public function getSignContent($params)
     {
         ksort($params);
 
