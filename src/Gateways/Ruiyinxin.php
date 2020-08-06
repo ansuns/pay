@@ -62,9 +62,7 @@ abstract class Ruiyinxin extends GatewayInterface
             "encryptData" => [
                 'version' => '1.0.0',
                 'msgType' => '01',
-                'payWay' => "WXZF",
                 'reqDate' => date('YmdHis'),
-                'reqMsgId' => $reqMsgId,//请求流水号（订单号）
                 'data' => []
             ],
             "ext" => [],//备用域
@@ -91,14 +89,13 @@ abstract class Ruiyinxin extends GatewayInterface
      */
     protected function getResult()
     {
-        file_put_contents('./result.txt', json_encode([888, $this->config]) . PHP_EOL, FILE_APPEND);
-        $this->config['encryptData'] = AesService::encrypt(ToolsService::array_to_xml($this->config['encryptData']));
-
-        $this->config['signData'] = $this->getSign($this->config);
+        file_put_contents('./result.txt', json_encode([7777, $this->config], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+        $this->config['signData'] = $this->getSign(json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE));
+        $this->config['encryptData'] = AesService::encrypt(json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE), $this->userConfig->get('cooperatorAESKey'));
         $url = $this->gateway;
         $header = ['Content-Type: application/json'];
         $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
-        file_put_contents('./result.txt', json_encode([$this->userConfig, $this->config, $result]) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$this->config, $result], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -382,36 +379,16 @@ abstract class Ruiyinxin extends GatewayInterface
         if (is_null($this->userConfig->get('cooperatorPriKey'))) {
             throw new InvalidArgumentException('Missing Config -- [cooperatorPriKey]');
         }
-        ksort($data);
-        $data = $this->getSignContent($data);
-        $cooprator_pri_key = $this->userConfig->get('cooperatorPriKey');
-        $str = chunk_split($cooprator_pri_key, 64, "\n");
-        $private_key = "-----BEGIN RSA PRIVATE KEY-----\n$str-----END RSA PRIVATE KEY-----\n";
-        $res = openssl_get_privatekey($private_key);
-        openssl_sign($data, $sign, $res);
-        openssl_free_key($res);
-        return base64_encode($sign);  //base64编码
-    }
+        $privateKey = $this->userConfig->get('cooperatorPriKey');
+        $privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" .
+            wordwrap($privateKey, 64, "\n", true) .
+            "\n-----END RSA PRIVATE KEY-----";
 
-    /**
-     * 生成签名内容
-     * @param array $sign_data
-     * @return string
-     */
-    private function getSignContent($sign_data)
-    {
-        ksort($sign_data);
-        $params = [];
-        foreach ($sign_data as $key => $value) {
-            if (is_array($value)) {
-                $value = stripslashes(json_encode($value, JSON_UNESCAPED_UNICODE));
-            }
-            if ($key != 'sign') {
-                $params[] = $key . '=' . $value;
-            }
-        }
-        $data = implode("&", $params);
-        return $data;
+        $key = openssl_get_privatekey($privateKey);
+        openssl_sign($data, $signature, $key);
+        openssl_free_key($key);
+        $sign = base64_encode($signature);
+        return $sign;
     }
 
     /**

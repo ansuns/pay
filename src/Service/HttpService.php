@@ -121,7 +121,7 @@ class HttpService
      */
     public function post($url, $data = array(), $opitons = [])
     {
-        $this->set_header($opitons);
+        $this->set_header($opitons['headers']);
         $this->opts[CURLOPT_POST] = true;
         $this->set_url($url);
         $this->set_method(__FUNCTION__);
@@ -390,6 +390,7 @@ class HttpService
             return $this->rolling_curl();
         }
         curl_setopt_array($this->ch, $this->opts);
+        file_put_contents('./curl_exec.txt', json_encode([$this->ch, $this->opts], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
         $return = curl_exec($this->ch);
         $this->response = $return;
         $request_info = curl_getinfo($this->ch);

@@ -26,14 +26,13 @@ class AesService
      */
     public static function encrypt($input, $key = '')
     {
-        if (!$key) {
+        if (!empty($key)) {
             self::$key = $key;
         }
 
-        //加密字符串需要自己手动去填充补位，也就是你字符串不足需要进行补位，要补够16
-        $data = openssl_encrypt(self::addpadding($input), 'AES-128-CBC', self::$key, OPENSSL_NO_PADDING, self::$iv);
-        //因为加密出来的字符不方便传输，所以需要把它转成16进制，也可以用base64加密
-        return base64_encode($data);
+        $encryptedData = openssl_encrypt($input, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);
+
+        return base64_encode($encryptedData);
     }
 
     /**
@@ -44,10 +43,10 @@ class AesService
      */
     public static function decrypt($input, $key = '')
     {
-        if (!$key) {
+        if (!empty($key)) {
             self::$key = $key;
         }
-        $decrypted = openssl_decrypt(base64_decode($input), 'AES-128-CBC', self::$key, OPENSSL_NO_PADDING, self::$iv);
+        $decrypted = openssl_decrypt(base64_decode($input), 'AES-128-CBC', self::$key, OPENSSL_NO_PADDING);
 
         //因为加密的时候，补了位，所以返回的时候需要把补了位的去除掉
         return rtrim($decrypted, "\0");
@@ -56,25 +55,20 @@ class AesService
     //手动填充（补位）
 
     /**
-     * 手动填充
-     * @param $string // 需要填充的字符串
-     * @param int $blocksize 填充位数
+     * 加密后对称密钥
+     * @param $aesKey
+     * @param $publicKey
      * @return string
      */
-    private static function addpadding($string, $blocksize = 16)
+    public static function aesEncrypt($aesKey, $publicKey)
     {
+        $publicKey = "-----BEGIN PUBLIC KEY-----\n" .
+            wordwrap($publicKey, 64, "\n", true) .
+            "\n-----END PUBLIC KEY-----";
 
-        //判断长度
-        $len = strlen($string);
-
-        //计算需要补位的长度
-        $pad = $blocksize - ($len % $blocksize);
-
-        //把字符串重新n次，然后拼接
-        $string .= str_repeat("\0", $pad);
-
-        return $string;
-
+        $key = openssl_get_publickey($publicKey);
+        openssl_public_encrypt($aesKey, $encrypt, $key, OPENSSL_PKCS1_PADDING);
+        return base64_encode($encrypt);
     }
 
     public static function keygen($length = 16)

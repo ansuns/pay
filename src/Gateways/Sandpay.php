@@ -122,7 +122,7 @@ abstract class Sandpay extends GatewayInterface
         $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
         $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
         $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
