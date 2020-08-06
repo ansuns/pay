@@ -32,7 +32,6 @@ class Pos extends Ruiyinxin
     public function apply(array $options = [])
     {
         $this->service = '';
-      //  $auth_code = $options['auth_code'];
         $this->setReqData($options);
 
         $result = $this->getResult();

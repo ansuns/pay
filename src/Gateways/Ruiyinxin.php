@@ -52,18 +52,18 @@ abstract class Ruiyinxin extends GatewayInterface
         $reqMsgId = $this->createNonceStr(32);//请求流水号（订单号）
         $this->config = [
             "cooperator" => "R_SMZF_HBKY",//合作方标识
-            "signData" => '',//请求报文签名
+            "signData" => "",//请求报文签名
             "tranCode" => "SMZF002",//交易服务码
             "callBack" => "http://58.56.27.134:8086/smshmn/callback.jsp",//回调地址（查询类交易可以不送）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
-            "encryptKey" => AesService::encrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
-            'reqMsgId' => $reqMsgId,//请求流水号（订单号）
+            "encryptKey" => AesService::encrypt($this->userConfig->get("cooperatorAESKey"), $this->userConfig->get("smzfPubKey")),
+            "reqMsgId" => $reqMsgId,//请求流水号（订单号）
             //加密后的请求报文
             "encryptData" => [
-                'version' => '1.0.0',
-                'msgType' => '01',
-                'reqDate' => date('YmdHis'),
-                'data' => []
+                "version" => "1.0.0",
+                "msgType" => "01",
+                "reqDate" => date("YmdHis"),
+                "data" => []
             ],
             "ext" => [],//备用域
         ];
@@ -89,9 +89,10 @@ abstract class Ruiyinxin extends GatewayInterface
      */
     protected function getResult()
     {
-        file_put_contents('./result.txt', json_encode([7777, $this->config], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-        $this->config['signData'] = $this->getSign(json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE));
-        $this->config['encryptData'] = AesService::encrypt(json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE), $this->userConfig->get('cooperatorAESKey'));
+
+        $data = json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE);
+        $this->config['signData'] = $this->getSign($data, JSON_UNESCAPED_UNICODE);
+        $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
         $url = $this->gateway;
         $header = ['Content-Type: application/json'];
         $result = $this->post($url, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
@@ -383,7 +384,6 @@ abstract class Ruiyinxin extends GatewayInterface
         $privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" .
             wordwrap($privateKey, 64, "\n", true) .
             "\n-----END RSA PRIVATE KEY-----";
-
         $key = openssl_get_privatekey($privateKey);
         openssl_sign($data, $signature, $key);
         openssl_free_key($key);
