@@ -121,6 +121,10 @@ abstract class Sandpay extends GatewayInterface
 
         $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
         $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['agent_private_key']);
+        if ($this->config['method'] == 'merchant.bind.wechat.appid' || $this->config['method'] == 'merchant.add.pay.path') {
+            unset($this->config['sign']);
+            $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['agent_private_key']);
+        }
         $header = ['Content-Type: application/json'];
         $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
 
