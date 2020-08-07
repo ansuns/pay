@@ -120,7 +120,7 @@ abstract class Sandpay extends GatewayInterface
     {
 
         $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
-        $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
+        $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['agent_private_key']);
         $header = ['Content-Type: application/json'];
         $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
 
@@ -390,20 +390,6 @@ abstract class Sandpay extends GatewayInterface
     public function getNotify()
     {
         $data = $_GET;
-//        $data = [
-//            "app_id"=>"552018071901179",
-//            "bank_order_no"=>"551808166435673987681113091",
-//            "bank_trx_no"=>"20180816095058384099",
-//            "notify_type"=>"trade_status_sync",
-//            "out_order_no"=>"1534384254834",
-//            "pay_amount"=>"0.01",
-//            "pay_success_time"=>"20180816095048",
-//            "plat_trx_no"=>"541808166435673987681113094",
-//            "settle_amount"=>"0.01",
-//            "sign_type"=>"RSA",
-//            "trade_status"=>"SUCCESS",
-//            "sign"=>"OLUnaUiXFnqjO4ThGdL4w8fTHL7M5zwH7JmmfHow3BWm2dthcx7ydlnlgSKa2Q2ixOZLYFagrmC2PeWRG7X iSWvrT4wDJMYVfR5o58m/i2f"
-//        ];
         if (!empty($data['sign'])) {
             $sign = $data['sign'];
             unset($data['sign']);
@@ -441,9 +427,9 @@ abstract class Sandpay extends GatewayInterface
         exit(); // 当商户收到回调通知时，应返回Http状态码200且返回响应体SUCCESS，如返回其他值，平台将多次重复进行通知
     }
 
-    public function rsaSign($params, $signType = "RSA")
+    public function rsaSign($params, $agent_private_key, $signType = "RSA")
     {
-        return $this->sign($this->getSignContent($params), $signType);
+        return $this->sign($this->getSignContent($params), $agent_private_key, $signType);
     }
 
     public function getSignContent($params)
@@ -519,10 +505,5 @@ abstract class Sandpay extends GatewayInterface
         unset($this->config['notify_url']);
         unset($this->config['trade_type']);
         return true;
-    }
-
-    public function upload()
-    {
-
     }
 }
