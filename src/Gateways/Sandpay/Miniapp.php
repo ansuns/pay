@@ -29,7 +29,7 @@ class Miniapp extends Sandpay
         $result = $this->getResult();
 
         if ($this->isSuccess($result)) {
-            return $this->buildPayResult($result);
+            return $result;
         } else {
             try {
                 //特定失败自动尝试配置APPID
