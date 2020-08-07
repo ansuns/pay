@@ -192,7 +192,7 @@ abstract class Sandpay extends GatewayInterface
         $this->config['method'] = "trade.refund";
 
         // JSON格式，与下游额外约定的特殊参数
-        $data = $this->getResult();
+        return $this->getResult();
 
     }
 
