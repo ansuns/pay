@@ -93,13 +93,14 @@ abstract class Ruiyinxin extends GatewayInterface
         $data = json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE);
         $this->config['signData'] = $this->getSign($data);
         $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
-        $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gateway, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
-        file_put_contents('./result.txt', json_encode([$this->config, $result], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+        $header = ["Content-Type: application/x-www-form-urlencoded"];
+        $result = $this->post($this->gateway, http_build_query($this->config), ['headers' => $header]);
+
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
+        file_put_contents('./result.txt', json_encode([$this->config, $result], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
         if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
             throw new GatewayException('验证签名失败', 20000, $result);
         }

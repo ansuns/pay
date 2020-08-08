@@ -30,7 +30,7 @@ class AesService
             self::$key = $key;
         }
 
-        $encryptedData = openssl_encrypt($input, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);
+        $encryptedData = openssl_encrypt($input, 'AES-128-ECB', self::$key, OPENSSL_RAW_DATA);
 
         return base64_encode($encryptedData);
     }
@@ -46,10 +46,9 @@ class AesService
         if (!empty($key)) {
             self::$key = $key;
         }
-        $decrypted = openssl_decrypt(base64_decode($input), 'AES-128-CBC', self::$key, OPENSSL_RAW_DATA);
+        $encryptedData = openssl_encrypt($input, 'AES-128-ECB', self::$key, OPENSSL_RAW_DATA);
 
-        //因为加密的时候，补了位，所以返回的时候需要把补了位的去除掉
-        return rtrim($decrypted, "\0");
+        return base64_encode($encryptedData);
     }
 
     //手动填充（补位）
