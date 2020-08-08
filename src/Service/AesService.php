@@ -46,7 +46,7 @@ class AesService
         if (!empty($key)) {
             self::$key = $key;
         }
-        $decrypted = openssl_decrypt(base64_decode($input), 'AES-128-CBC', self::$key, OPENSSL_NO_PADDING);
+        $decrypted = openssl_decrypt(base64_decode($input), 'AES-128-CBC', self::$key, OPENSSL_RAW_DATA);
 
         //因为加密的时候，补了位，所以返回的时候需要把补了位的去除掉
         return rtrim($decrypted, "\0");

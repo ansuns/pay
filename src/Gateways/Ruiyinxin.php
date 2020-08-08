@@ -51,21 +51,21 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->userConfig = new Config($config);
         $reqMsgId = $this->createNonceStr(32);//请求流水号（订单号）
         $this->config = [
-            "cooperator" => "R_SMZF_HBKY",//合作方标识
-            "signData" => "",//请求报文签名
-            "tranCode" => "SMZF002",//交易服务码
-            "callBack" => "http://58.56.27.134:8086/smshmn/callback.jsp",//回调地址（查询类交易可以不送）
+            'cooperator' => 'R_SMZF_HBKY',//合作方标识
+            'signData' => '',//请求报文签名
+            'tranCode' => 'SMZF002',//交易服务码
+            'callBack' => 'http://58.56.27.134:8086/smshmn/callback.jsp',//回调地址（查询类交易可以不送）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
-            "encryptKey" => AesService::encrypt($this->userConfig->get("cooperatorAESKey"), $this->userConfig->get("smzfPubKey")),
-            "reqMsgId" => $reqMsgId,//请求流水号（订单号）
+            'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
+            'reqMsgId' => $reqMsgId,//请求流水号（订单号）
             //加密后的请求报文
-            "encryptData" => [
-                "version" => "1.0.0",
-                "msgType" => "01",
-                "reqDate" => date("YmdHis"),
-                "data" => []
+            'encryptData' => [
+                'version' => '1.0.0',
+                'msgType' => '01',
+                'reqDate' => date('YmdHis'),
+                'data' => []
             ],
-            "ext" => [],//备用域
+            'ext' => [],//备用域
         ];
 
 
@@ -91,7 +91,7 @@ abstract class Ruiyinxin extends GatewayInterface
     {
 
         $data = json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE);
-        $this->config['signData'] = $this->getSign($data, JSON_UNESCAPED_UNICODE);
+        $this->config['signData'] = $this->getSign($data);
         $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
         $url = $this->gateway;
         $header = ['Content-Type: application/json'];
