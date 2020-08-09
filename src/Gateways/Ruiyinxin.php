@@ -113,14 +113,18 @@ abstract class Ruiyinxin extends GatewayInterface
         $smzfAESKey = $rsa->privDecrypt($result['encryptKey']);
         //用解密得到的smzfAESKey 解密 encryptData
         $resEncryptData = base64_decode(AesService::aesDecryptData($result['encryptData'], $smzfAESKey));
+        if (!ToolsService::is_json($resEncryptData)) {
+            throw new GatewayException('解密数据不是有效json格式', 20000, $result);
+        }
 
         //错误示例1{"msg":"subOpenId or subAppid is empty","code":"SXF0002"}
         //错误示例2{"msg":"操作成功","code":"SXF0000","sign":"XX","respData":{"bizMsg":"交易失败，请联系客服","bizCode":"2010","uuid":"093755621dc64ce0b3cfda3c335a83e5"},"signType":"RSA","orgId":"21561002","reqId":"3FQillJLkDGMxngvRKfbYo3kccuBIGYy"}
-        $response_data = $result['respData'] ?? $result;
+        $response_data = json_decode($resEncryptData, true);
+        file_put_contents('./result.txt', json_encode([$this->config, $response_data]) . PHP_EOL, FILE_APPEND);
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($result['code']) || $result['code'] !== 'SXF0000' || (isset($response_data['bizCode']) && $response_data['bizCode'] !== '0000')) {
+        if (!isset($result['respCode']) || $result['respCode'] !== '000000') {
             $response_data['result_code'] = 'FAIL';
             $err_code_des = 'ERROR_MSG:' . (isset($result['msg']) ? $result['msg'] : '');
             $err_code_des .= isset($result['code']) ? ';ERROR_CODE:' . $result['code'] : '';
