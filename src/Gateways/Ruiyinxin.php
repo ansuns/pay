@@ -8,6 +8,7 @@ use Ansuns\Pay\Contracts\HttpService;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\AesService;
+use Ansuns\Pay\Service\RYXRSAService;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
@@ -49,6 +50,8 @@ abstract class Ruiyinxin extends GatewayInterface
     public function __construct(array $config)
     {
         $this->userConfig = new Config($config);
+        //合作方 AES 对称密钥，加密报文
+        $this->userConfig->set('cooperatorAESKey', AesService::keygen(16));
         $reqMsgId = $this->createNonceStr(32);//请求流水号（订单号）
         $this->config = [
             'cooperator' => 'R_SMZF_HBKY',//合作方标识
@@ -93,17 +96,24 @@ abstract class Ruiyinxin extends GatewayInterface
         $data = json_encode($this->config['encryptData'], JSON_UNESCAPED_UNICODE);
         $this->config['signData'] = $this->getSign($data);
         $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
-        $header = ["Content-Type: application/x-www-form-urlencoded"];
+        $header = ['Content-Type: application/x-www-form-urlencoded'];
         $result = $this->post($this->gateway, http_build_query($this->config), ['headers' => $header]);
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        file_put_contents('./result.txt', json_encode([$this->config, $result], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
+        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('cooperatorPriKey'))) {
             throw new GatewayException('验证签名失败', 20000, $result);
         }
+
+        //合作方RSA私钥cooperatorPriKey解密encryptKey得到扫码支付平台smzfAESKey
+
+        $rsa = new RYXRSAService('', '');
+        $smzfAESKey = $rsa->privDecrypt($result['encryptKey']);
+        //用解密得到的smzfAESKey 解密 encryptData
+        $resEncryptData = base64_decode(AesService::aesDecryptData($result['encryptData'], $smzfAESKey));
+
         //错误示例1{"msg":"subOpenId or subAppid is empty","code":"SXF0002"}
         //错误示例2{"msg":"操作成功","code":"SXF0000","sign":"XX","respData":{"bizMsg":"交易失败，请联系客服","bizCode":"2010","uuid":"093755621dc64ce0b3cfda3c335a83e5"},"signType":"RSA","orgId":"21561002","reqId":"3FQillJLkDGMxngvRKfbYo3kccuBIGYy"}
         $response_data = $result['respData'] ?? $result;

@@ -70,6 +70,19 @@ class AesService
         return base64_encode($encrypt);
     }
 
+    /**
+     * @param $resp
+     * @param $aesKey
+     * @return string
+     */
+    public static function aesDecryptData($resp, $aesKey)
+    {
+
+        $encryptedData = openssl_decrypt(base64_decode($resp), 'AES-128-ECB', $aesKey, OPENSSL_PKCS1_PADDING);
+        return base64_encode($encryptedData);
+    }
+
+
     public static function keygen($length = 16)
     {
         $token = '';
