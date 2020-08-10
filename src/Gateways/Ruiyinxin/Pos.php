@@ -15,12 +15,12 @@ class Pos extends Ruiyinxin
 {
 
     /**
-     * 当前操作类型
+     * 当前操作类型 扫码支付
      * @return string
      */
     protected function getTradeType()
     {
-        return 'MICROPAY';
+        return 'SMZF002';
     }
 
     /**
@@ -31,7 +31,7 @@ class Pos extends Ruiyinxin
      */
     public function apply(array $options = [])
     {
-        $this->service = '';
+        $this->config['tranCode'] = $this->getTradeType(); //扫码支付
         $this->setReqData($options);
 
         $result = $this->getResult();

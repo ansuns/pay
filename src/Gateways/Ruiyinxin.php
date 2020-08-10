@@ -56,7 +56,7 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->config = [
             'cooperator' => 'R_SMZF_HBKY',//合作方标识
             'signData' => '',//请求报文签名
-            'tranCode' => 'SMZF002',//交易服务码
+            'tranCode' => '',//交易服务码
             'callBack' => 'http://58.56.27.134:8086/smshmn/callback.jsp',//回调地址（查询类交易可以不送）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
             'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
@@ -142,39 +142,24 @@ abstract class Ruiyinxin extends GatewayInterface
         return $response_data;
     }
 
+
     /**
-     * 订单退款操作
-     * @param array $options
-     * @return array
+     * 退款操作
+     * @param $refundAmount 需要退款的金额，该金额不能大于订单金额,单位为元，支持两位小数
+     * @param string $oriReqMsgId oriReqMsgId
+     * @param string $merchantCode 商户入驻返回的商户编号
+     * @return array|mixed
      * @throws GatewayException
      */
-    public function refund($options = [])
+    public function refund($refundAmount, $oriReqMsgId = '', $merchantCode = '')
     {
-        $this->service = "/qr/refund";
+        $this->gateway = 'http://wxtest.ruishangtong.com/ydzf/admin/ydzf-smzf001/';
+        $this->config['tranCode'] = "SMZF004"; //申请退款
+        //$this->config['reqMsgId'] =$oriReqMsgId;
         $this->setReqData([
-            'ordNo' => $options['out_refund_no'],
-            'origOrderNo' => $options['out_trade_no'],
-            'amt' => ToolsService::ncPriceFen2yuan($options['refund_fee']),
+            'oriReqMsgId' => $oriReqMsgId, 'merchantCode' => $merchantCode, 'refundAmount' => $refundAmount
         ]);
         $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            $return = [
-                'return_code' => $data['return_code'], //通信结果
-                'return_msg' => $data['return_msg'],
-                'result_code' => $data['result_code'],
-                'appid' => isset($data['appId']) ? $data['appId'] : '',
-                'mch_id' => '',
-                'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-                'sign' => isset($data['sign']) ? $data['sign'] : '',
-                'out_refund_no' => $data['ordNo'],
-                'out_trade_no' => $data['origOrderNo'],
-                'refund_id' => '',
-                'transaction_id' => '',
-                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
-                'raw_data' => $data
-            ];
-            return $return;
-        }
         return $data;
     }
 
@@ -210,32 +195,63 @@ abstract class Ruiyinxin extends GatewayInterface
         return $data;
     }
 
+
     /**
-     * 关闭正在进行的订单
-     * @param string $out_trade_no
-     * @param string $reason
-     * @return array
+     * 撤销交易
+     * @param string $oriReqMsgId
+     * @param string $merchantCode
+     * @return array|mixed
      * @throws GatewayException
      */
-    public function close($out_trade_no = '', $reason = '')
+    public function close($oriReqMsgId = '', $merchantCode = '')
     {
-        $this->service = "/close";
-        $this->config['outTradeNo'] = $out_trade_no;
-        $this->config['reason'] = $reason;
-        $this->config['merchantCode'] = $this->userConfig->get('merchant_no');
+        $this->config['tranCode'] = "SMZF005"; //撤销交易
+        $this->setReqData([
+            'oriReqMsgId' => $oriReqMsgId, 'merchantCode' => $merchantCode
+        ]);
         return $this->getResult();
     }
 
+
     /**
-     * 查询订单状态OK
-     * @param string $out_trade_no
-     * @return array
+     * 查询订单
+     * @param string $oriReqMsgId
+     * @return array|mixed
      * @throws GatewayException
      */
-    public function find($out_trade_no = '')
+    public function find($oriReqMsgId = '')
     {
-        $this->service = "/qr/query";
-        $this->setReqData(['ordNo' => $out_trade_no]);
+        $this->config['tranCode'] = "SMZF006"; //交易查询
+        // unset($this->config['reqMsgId'],$this->config['callBack']);
+
+//        {
+//            "respType":"S",
+//"smzfMsgId":"B20200810000004217690",
+//"msgType":"02",
+//"reqDate":"20200810080227",
+//"data":{
+//            "pointAmount":"0",
+//"oriRespType":"S",
+//"payTime":"20200810074725",
+//"oriRespMsg":"交易成功",
+//"settleDate":"20200810",
+//"buyerId":"2088432469643250",
+//"oriRespCode":"000000",
+//"totalAmount":"0.01",
+//"billAmt":"0.01",
+//"channelMerchNo":"90200810074251537840457676516209",
+//"payType":"3",
+//"buyerAccount":"187****5108",
+//"channelTradeNo":"962020081022001443251418270269",
+//"fundBillList":"[{"amount":"0.01","fundChannel":"ALIPAYACCOUNT"}]"
+//},
+//"channelMsgId":"90200810074251537840457676516209",
+//"respMsg":"处理成功",
+//"version":"1.0.0",
+//"respDate":"20200810080205",
+//"respCode":"000000"
+//}
+        $this->setReqData(['oriReqMsgId' => $oriReqMsgId]);
         $data = $this->getResult();
         if ($this->isSuccess($data)) {
             return $this->buildPayResult($data);
