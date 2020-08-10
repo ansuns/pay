@@ -50,14 +50,31 @@ abstract class Ruiyinxin extends GatewayInterface
     public function __construct(array $config)
     {
         $this->userConfig = new Config($config);
+
+        if (is_null($this->userConfig->get('reqMsgId'))) {
+            throw new InvalidArgumentException('Missing Config -- [reqMsgId]');
+        }
+        if (is_null($this->userConfig->get('cooperator'))) {
+            throw new InvalidArgumentException('Missing Config -- [cooperator]');
+        }
+        if (is_null($this->userConfig->get('cooperatorPubKey'))) {
+            throw new InvalidArgumentException('Missing Config -- [cooperatorPubKey]');
+        }
+        if (is_null($this->userConfig->get('cooperatorPriKey'))) {
+            throw new InvalidArgumentException('Missing Config -- [cooperatorPriKey]');
+        }
+        if (is_null($this->userConfig->get('smzfPubKey'))) {
+            throw new InvalidArgumentException('Missing Config -- [smzfPubKey]');
+        }
+
         //合作方 AES 对称密钥，加密报文
         $this->userConfig->set('cooperatorAESKey', AesService::keygen(16));
-        $reqMsgId = $this->createNonceStr(32);//请求流水号（订单号）
+        $reqMsgId = $this->userConfig->get('reqMsgId');//请求流水号（订单号）
         $this->config = [
             'cooperator' => $this->userConfig->get('cooperator'),//合作方标识
             'signData' => '',//请求报文签名
             'tranCode' => '',//交易服务码
-            'callBack' => 'http://58.56.27.134:8086/smshmn/callback.jsp',//回调地址（查询类交易可以不送）
+            'callBack' => $this->userConfig->get('callback', 'http://58.56.27.134:8086/smshmn/callback.jsp'),//回调地址（查询类交易可以不送）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
             'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
             'reqMsgId' => $reqMsgId,//请求流水号（订单号）
@@ -109,7 +126,7 @@ abstract class Ruiyinxin extends GatewayInterface
 
         //合作方RSA私钥cooperatorPriKey解密encryptKey得到扫码支付平台smzfAESKey
 
-        $rsa = new RYXRSAService('', '');
+        $rsa = new RYXRSAService($this->userConfig->get('cooperator_pri_key_path'), $this->userConfig->get('cooperator_pub_key_path'));
         $smzfAESKey = $rsa->privDecrypt($result['encryptKey']);
         //用解密得到的smzfAESKey 解密 encryptData
         $resEncryptData = base64_decode(AesService::aesDecryptData($result['encryptData'], $smzfAESKey));

@@ -11,8 +11,8 @@ class RYXRSAService
 
     public function __construct($private_key_filepath, $public_key_filepath)
     {
-        $this->_config['private_key'] = $this->_getContents('./ryxss_pkcs8_rsa_private_key_2048.pem');
-        $this->_config['public_key'] = $this->_getContents('./ryxss_rsa_public_key_2048.pem');
+        $this->_config['private_key'] = $this->_getContents($private_key_filepath);
+        $this->_config['public_key'] = $this->_getContents($public_key_filepath);
     }
 
     /**
