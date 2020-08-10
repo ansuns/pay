@@ -54,7 +54,7 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->userConfig->set('cooperatorAESKey', AesService::keygen(16));
         $reqMsgId = $this->createNonceStr(32);//请求流水号（订单号）
         $this->config = [
-            'cooperator' => 'R_SMZF_HBKY',//合作方标识
+            'cooperator' => $this->userConfig->get('cooperator'),//合作方标识
             'signData' => '',//请求报文签名
             'tranCode' => '',//交易服务码
             'callBack' => 'http://58.56.27.134:8086/smshmn/callback.jsp',//回调地址（查询类交易可以不送）
