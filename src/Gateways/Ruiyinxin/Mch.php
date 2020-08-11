@@ -203,8 +203,8 @@ class Mch extends Ruiyinxin
         $files = $this->config['files'];
         $this->config['files'] = [];
         if ($files) {
-            foreach ($files as $value) {
-                $this->config['files'][] = curl_file_create($value);
+            foreach ($files as $key => $value) {
+                $this->config['files'][$key] = curl_file_create($value);
 
             }
         }

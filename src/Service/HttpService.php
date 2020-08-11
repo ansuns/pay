@@ -393,7 +393,6 @@ class HttpService
             return $this->rolling_curl();
         }
         curl_setopt_array($this->ch, $this->opts);
-        file_put_contents('./curl_exec.txt', json_encode([$this->ch, $this->opts], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
         $return = curl_exec($this->ch);
         $this->response = $return;
         $request_info = curl_getinfo($this->ch);
