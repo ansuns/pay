@@ -35,9 +35,9 @@ class Mch extends Ruiyinxin
             'sign' => '',//（签名信息）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
             'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
-            'otherParam' => [],//,附加参数，根据不同接口该参数不同，可传空，
+            'otherParam' => "",//,附加参数，根据不同接口该参数不同，可传空，
             'info' => [],//（具体请求数据，该数据由AES（AES/CBC/PKCS5Padding）进行加密），
-            'files' => $this->userConfig->get('files'),
+            'files' => $this->userConfig->get('files', []),
 
         ];
 
@@ -160,11 +160,6 @@ class Mch extends Ruiyinxin
     protected function getResult()
     {
 
-        foreach ($this->config as $key => $val) {
-            if (empty($val)) {
-                $this->config[$key] = "";
-            }
-        }
         $commonParams = $this->getCommonParams();
         $params = $this->config['info'];
         //组织签名数据
@@ -176,8 +171,9 @@ class Mch extends Ruiyinxin
             $commonParams['accessMerchId'] = $accessMerchId;
         } else {
             $accessMerchId = $params['accessMerchId'];
+
         }
-        $this->config['accessMerchId'] = $accessMerchId;
+        //$this->config['accessMerchId'] = $accessMerchId;
         // 获取AES密钥
         $keyParam = base64_decode(self::$aesKey);
         $base64Key = base64_encode($keyParam);
@@ -200,30 +196,38 @@ class Mch extends Ruiyinxin
         $info = $this->createAESencryptData($rawData, $keyParam, self::$ivParam);
         $this->config['info'] = $info;
 
-        $files = $this->config['files'];
-        $this->config['files'] = [];
-        if ($files) {
+        $files = $this->config['files'] ?? [];
+
+        unset($this->config['files']);
+        if (!empty($files)) {
             foreach ($files as $key => $value) {
                 $this->config['files'][$key] = curl_file_create($value);
 
             }
         }
-
         $url = $this->gateway . $this->service;
         $result = $this->post($url, $this->config);
-
+        file_put_contents('./result.txt', json_encode(["瑞银信进件", $this->config, $result]) . PHP_EOL, FILE_APPEND);
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
+        if (!isset($result['encryptKey'])) {
+            $response_data['return_code'] = 'EORROR'; //数据能解析则通信结果认为成功
+            $response_data['result_code'] = 'EORROR'; //初始状态为成功,如果失败会重新赋值
+            $response_data['return_msg'] = isset($result['msg']) ? $result['msg'] : 'EROOR!';
+            return $response_data;
+        }
         // 获取结果的数据进行解密
         $response_data = $this->decryptData($result);
         $response_data = json_decode($response_data, true);
-        file_put_contents('./result.txt', "瑞银信进件" . PHP_EOL, FILE_APPEND);
-        file_put_contents('./result.txt', json_encode([$this->config, $response_data]) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
         if ($response_data['code'] != '0000') {
-            throw new GatewayException('业务错误', 20000);
+            $response_data['return_code'] = 'EORROR'; //数据能解析则通信结果认为成功
+            $response_data['result_code'] = 'EORROR'; //初始状态为成功,如果失败会重新赋值
+            $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'EROOR!';
+            return $response_data;
         }
 
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
@@ -342,5 +346,18 @@ class Mch extends Ruiyinxin
 
         $result = openssl_decrypt(base64_decode($info), 'AES-256-CBC', base64_decode($res['aesKey']), OPENSSL_RAW_DATA, $res['ivParam']);
         return $result;
+    }
+
+    /**
+     * 进件结果查询
+     * @param $accessMerchId
+     * @return array
+     * @throws GatewayException
+     */
+    public function queryMerchResult($accessMerchId)
+    {
+        $this->setReqData(['accessMerchId' => $accessMerchId]);
+        $this->service = "/ims/merch/queryMerchResult";
+        return $this->getResult();
     }
 }
