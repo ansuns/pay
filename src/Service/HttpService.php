@@ -121,7 +121,10 @@ class HttpService
      */
     public function post($url, $data = array(), $opitons = [])
     {
-        $this->set_header($opitons['headers']);
+        if (isset($opitons['headers'])) {
+            $this->set_header($opitons['headers']);
+        }
+
         $this->opts[CURLOPT_POST] = true;
         $this->set_url($url);
         $this->set_method(__FUNCTION__);
