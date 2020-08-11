@@ -35,7 +35,7 @@ class Mch extends Ruiyinxin
             'sign' => '',//（签名信息）
             //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
             'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
-            //'otherParam' => [],//,附加参数，根据不同接口该参数不同，可传空，
+            'otherParam' => [],//,附加参数，根据不同接口该参数不同，可传空，
             'info' => [],//（具体请求数据，该数据由AES（AES/CBC/PKCS5Padding）进行加密），
             'files' => $this->userConfig->get('files'),
 
@@ -160,6 +160,11 @@ class Mch extends Ruiyinxin
     protected function getResult()
     {
 
+        foreach ($this->config as $key => $val) {
+            if (empty($val)) {
+                $this->config[$key] = "";
+            }
+        }
         $commonParams = $this->getCommonParams();
         $params = $this->config['info'];
         //组织签名数据
@@ -215,7 +220,8 @@ class Mch extends Ruiyinxin
         // 获取结果的数据进行解密
         $response_data = $this->decryptData($result);
         $response_data = json_decode($response_data, true);
-        file_put_contents('./result.txt', json_encode(["瑞银信进件", $response_data]) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', "瑞银信进件" . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$this->config, $response_data]) . PHP_EOL, FILE_APPEND);
         if ($response_data['code'] != '0000') {
             throw new GatewayException('业务错误', 20000);
         }
