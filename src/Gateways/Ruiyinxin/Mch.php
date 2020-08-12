@@ -168,12 +168,12 @@ class Mch extends Ruiyinxin
         $this->config['sign'] = $signData;
         if (!isset($params['accessMerchId'])) {
             $accessMerchId = $this->createAccessMerchId();
-            $commonParams['accessMerchId'] = $accessMerchId;
+            //$commonParams['accessMerchId'] = $accessMerchId;
         } else {
             $accessMerchId = $params['accessMerchId'];
 
         }
-        //$this->config['accessMerchId'] = $accessMerchId;
+        $this->config['accessMerchId'] = $accessMerchId;
         // 获取AES密钥
         $keyParam = base64_decode(self::$aesKey);
         $base64Key = base64_encode($keyParam);
@@ -223,16 +223,17 @@ class Mch extends Ruiyinxin
         $response_data = $this->decryptData($result);
         $response_data = json_decode($response_data, true);
         file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
-        if ($response_data['code'] != '0000') {
-            $response_data['return_code'] = 'EORROR'; //数据能解析则通信结果认为成功
-            $response_data['result_code'] = 'EORROR'; //初始状态为成功,如果失败会重新赋值
-            $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'EROOR!';
-            return $response_data;
+        if (!isset($response_data['respCode']) || $response_data['respCode'] != '000000' || !isset($response_data['respType']) || $response_data['respType'] != 'S') {
+            $response_data['result_code'] = 'FAIL';
+            $err_code_des = (isset($response_data['respMsg']) ? $response_data['respMsg'] : '');
+            $err_code = isset($response_data['respCode']) ? $response_data['respCode'] : 'F';
+            $response_data['err_code'] = $err_code;
+            $response_data['err_code_des'] = $err_code_des;
         }
 
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
+        $response_data['return_msg'] = isset($response_data['respMsg']) ? $response_data['respMsg'] : '处理成功';
         return $response_data;
     }
 
@@ -313,13 +314,13 @@ class Mch extends Ruiyinxin
 
     /**
      * 加密数据
-     * 用RSA公钥加密方式对AES密钥进行加密,对方公钥加密
+     * RSA公钥加密方式对AES密钥进行加密，对方公钥加密
      * @param $str
      * @return null|string
      */
     private function createCooperatorAESKey($str)
     {
-        $pubKey = $this->userConfig->get('pubKey');
+        $pubKey = $this->userConfig->get('imsPubKey');
 
         $rsa = new RsaSecurityService($pubKey);
         $res = $rsa->pubEncrypt($str);

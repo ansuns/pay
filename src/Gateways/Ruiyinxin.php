@@ -12,8 +12,8 @@ use Ansuns\Pay\Service\RYXRSAService;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
- * 微信支付基础类
- * Class Wechat
+ * 瑞银信支付基础类
+ * Class Ruiyinxin
  * @package Pay\Gateways\Wechat
  */
 abstract class Ruiyinxin extends GatewayInterface
@@ -35,12 +35,14 @@ abstract class Ruiyinxin extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway = 'http://wxtest.ruishangtong.com/ydzf/ydzf-smzf';
+    protected $gateway_test = 'http://wxtest.ruishangtong.com/ydzf/ydzf-smzf';
+    protected $gateway = 'https://qr.ruiyinxin.com/ydzf/ydzf-smzf';
 
     /**
      * @var string
      */
-    protected $gateway_query = 'https://api.mch.weixin.qq.com/pay/orderquery';
+    protected $gateway_wechat_test = 'http://wxtest.ruishangtong.com/ydzf/wechat/gateway';
+    protected $gateway_wechat = 'https://qr.ruiyinxin.com/ydzf/wechat/gateway';
 
     /**
      * Wechat constructor.
@@ -115,17 +117,13 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
         $header = ['Content-Type: application/x-www-form-urlencoded'];
         $result = $this->post($this->gateway, http_build_query($this->config), ['headers' => $header]);
-
+        file_put_contents('./result.txt', json_encode(["瑞银信交易", $result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('cooperatorPriKey'))) {
-            throw new GatewayException('验证签名失败', 20000, $result);
-        }
 
         //合作方RSA私钥cooperatorPriKey解密encryptKey得到扫码支付平台smzfAESKey
-
         $rsa = new RYXRSAService($this->userConfig->get('cooperator_pri_key_path'), $this->userConfig->get('cooperator_pub_key_path'));
         $smzfAESKey = $rsa->privDecrypt($result['encryptKey']);
         //用解密得到的smzfAESKey 解密 encryptData
@@ -134,25 +132,15 @@ abstract class Ruiyinxin extends GatewayInterface
             throw new GatewayException('解密数据不是有效json格式', 20000, $result);
         }
 
-        //错误示例1{"msg":"subOpenId or subAppid is empty","code":"SXF0002"}
-        //错误示例2{"msg":"操作成功","code":"SXF0000","sign":"XX","respData":{"bizMsg":"交易失败，请联系客服","bizCode":"2010","uuid":"093755621dc64ce0b3cfda3c335a83e5"},"signType":"RSA","orgId":"21561002","reqId":"3FQillJLkDGMxngvRKfbYo3kccuBIGYy"}
         $response_data = json_decode($resEncryptData, true);
-        file_put_contents('./result.txt', json_encode([$this->config, $response_data]) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($result['respCode']) || $result['respCode'] !== '000000') {
+        $response_data['return_msg'] = isset($response_data['respMsg']) ? $response_data['respMsg'] : '处理成功!';
+        if (!isset($response_data['respCode']) || $response_data['respCode'] != '000000' || !isset($response_data['respType']) || $response_data['respType'] != 'S') {
             $response_data['result_code'] = 'FAIL';
-            $err_code_des = 'ERROR_MSG:' . (isset($result['msg']) ? $result['msg'] : '');
-            $err_code_des .= isset($result['code']) ? ';ERROR_CODE:' . $result['code'] : '';
-            $err_code_des .= isset($response_data['bizCode']) ? ';ERROR_SUB_CODE:' . $response_data['bizCode'] : '';
-            $err_code_des .= isset($response_data['bizMsg']) ? ';ERROR_SUB_MSG:' . $response_data['bizMsg'] : '';
-            $err_code = isset($response_data['bizCode']) ? $response_data['bizCode'] : 'FAIL';
-            if (isset($response_data['msg']) && (strpos($response_data['msg'], 'ordNo不能重复') !== false)) {
-                //针对商城特殊判断返回
-                // {"msg":"ordNo不能重复","code":"SXF0002"}
-                $err_code = 'INVALID_REQUEST';
-            }
+            $err_code_des = (isset($response_data['respMsg']) ? $response_data['respMsg'] : '');
+            $err_code = isset($response_data['respCode']) ? $response_data['respCode'] : 'F';
             $response_data['err_code'] = $err_code;
             $response_data['err_code_des'] = $err_code_des;
         }
@@ -239,35 +227,6 @@ abstract class Ruiyinxin extends GatewayInterface
     public function find($oriReqMsgId = '')
     {
         $this->config['tranCode'] = "SMZF006"; //交易查询
-        // unset($this->config['reqMsgId'],$this->config['callBack']);
-
-//        {
-//            "respType":"S",
-//"smzfMsgId":"B20200810000004217690",
-//"msgType":"02",
-//"reqDate":"20200810080227",
-//"data":{
-//            "pointAmount":"0",
-//"oriRespType":"S",
-//"payTime":"20200810074725",
-//"oriRespMsg":"交易成功",
-//"settleDate":"20200810",
-//"buyerId":"2088432469643250",
-//"oriRespCode":"000000",
-//"totalAmount":"0.01",
-//"billAmt":"0.01",
-//"channelMerchNo":"90200810074251537840457676516209",
-//"payType":"3",
-//"buyerAccount":"187****5108",
-//"channelTradeNo":"962020081022001443251418270269",
-//"fundBillList":"[{"amount":"0.01","fundChannel":"ALIPAYACCOUNT"}]"
-//},
-//"channelMsgId":"90200810074251537840457676516209",
-//"respMsg":"处理成功",
-//"version":"1.0.0",
-//"respDate":"20200810080205",
-//"respCode":"000000"
-//}
         $this->setReqData(['oriReqMsgId' => $oriReqMsgId]);
         $data = $this->getResult();
         if ($this->isSuccess($data)) {
@@ -348,10 +307,12 @@ abstract class Ruiyinxin extends GatewayInterface
      */
     protected function isSuccess($result)
     {
+
         if (!is_array($result)) {
             return false;
         }
-        return isset($result['return_code']) && ($result['return_code'] === 'SUCCESS') && isset($result['result_code']) && ($result['result_code'] === 'SUCCESS');
+
+        return isset($result['respCode']) && ($result['respCode'] === '000000') && isset($result['respType']) && ($result['respType'] === 'S');
     }
 
     /**
