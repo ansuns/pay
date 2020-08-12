@@ -34,7 +34,7 @@ class Pos extends Ruiyinxin
         $this->config['tranCode'] = $this->getTradeType(); //扫码支付
         $this->setReqData($options);
 
-        $result = $this->getResult();
+        return  $this->getResult();
         if ($this->isSuccess($result)) {
             return $this->buildPayResult($result);
         }
