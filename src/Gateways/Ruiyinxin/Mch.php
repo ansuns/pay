@@ -170,17 +170,17 @@ class Mch extends Ruiyinxin
         $response_data = $this->decryptData($result);
         $response_data = json_decode($response_data, true);
         file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
-        if (!isset($response_data['respCode']) || $response_data['respCode'] != '000000' || !isset($response_data['respType']) || $response_data['respType'] != 'S') {
+        if (!isset($response_data['code']) || $response_data['code'] != '000000') {
             $response_data['result_code'] = 'FAIL';
-            $err_code_des = (isset($response_data['respMsg']) ? $response_data['respMsg'] : '');
-            $err_code = isset($response_data['respCode']) ? $response_data['respCode'] : 'F';
+            $err_code_des = (isset($response_data['msg']) ? $response_data['msg'] : '');
+            $err_code = isset($response_data['code']) ? $response_data['code'] : 'F';
             $response_data['err_code'] = $err_code;
             $response_data['err_code_des'] = $err_code_des;
         }
 
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['respMsg']) ? $response_data['respMsg'] : '处理成功';
+        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : '处理成功';
         return $response_data;
     }
 
