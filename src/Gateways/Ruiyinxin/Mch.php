@@ -38,9 +38,17 @@ class Mch extends Ruiyinxin
             'otherParam' => "",//,附加参数，根据不同接口该参数不同，可传空，
             'info' => [],//（具体请求数据，该数据由AES（AES/CBC/PKCS5Padding）进行加密），
             'files' => $this->userConfig->get('files', []),
-
         ];
 
+    }
+
+    /**
+     * 当前操作类型
+     * @return string
+     */
+    protected function getTradeType()
+    {
+        return '';
     }
 
     /**
@@ -72,48 +80,6 @@ class Mch extends Ruiyinxin
         return $this->getResult();
     }
 
-    /**
-     * 查询进件信息
-     * @param string $task_code
-     * @return mixed
-     * @throws Exception
-     * @throws GatewayException
-     */
-    public function bind_config(string $appid)
-    {
-        $this->service = "/weChat/bindconfig";
-        $this->setReqData([
-            'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
-            'subAppid' => $appid,//必传
-        ]);
-        return $this->getResult();
-    }
-
-    /**
-     * 查询进件信息
-     * @param string $task_code
-     * @return mixed
-     * @throws Exception
-     * @throws GatewayException
-     */
-    public function query_qrcode_product_info(string $task_code)
-    {
-        $this->service = "/MerchIncomeQuery/queryQrcodeProductInfo";
-        $this->setReqData([
-            'taskCode' => $task_code,
-        ]);
-        $result = $this->getResult();
-        $data = [];
-        if (!empty($result['repoInfo'])) {
-            foreach ($result['repoInfo'] as $info) {
-                if ($info['childNoType'] == 'WX') {
-                    $data['mno'] = $info['mno'];
-                    $data['sub_mch_id'] = $info['childNo'];
-                }
-            }
-        }
-        return $data ?: $result;
-    }
 
     /**
      * 设置请求数据
@@ -126,25 +92,6 @@ class Mch extends Ruiyinxin
         return $this;
     }
 
-    /**
-     * 查询订单状态
-     * @param string $out_trade_no 商户订单号
-     * @return array
-     * @throws GatewayException
-     */
-    public function find($out_trade_no = '')
-    {
-        //todo
-        return $this->getResult();
-    }
-
-    /**
-     * @return string
-     */
-    protected function getTradeType()
-    {
-        return '';
-    }
 
     protected function getMillisecond()
     {
