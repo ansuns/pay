@@ -390,32 +390,74 @@ class Mch extends Ruiyinxin
     }
 
 
+    /**
+     * @return array
+     * @throws GatewayException
+     *
+     */
     public function findProvince()
     {
+        // province 省编码
+        //{"id":null,"status":null,"orgId":null,"province":"1000","provinceName":"北京市","city":null,"cityName":null,"statusText":null}
         $this->service = "/sys/organarea/findProvinceByOrg";
         self::$method = 'get';
         return $this->getResult();
     }
 
+    /**
+     * @param $province
+     * @return array
+     * @throws GatewayException
+     */
     public function findCity($province)
     {
-        $this->service = "/sys/organarea/findCityByOrgAndPro";
-        $data = [
-            'province' => $province,
-        ];
+        // city 市编码
+        //{"id":null,"status":null,"orgId":"O00000000001046","province":"4500","provinceName":"山东省","city":"4520","cityName":"青岛市","statusText":null}
+        $data = ['province' => $province];
         $this->setReqData($data);
+        $this->service = "/sys/organarea/findCityByOrgAndPro";
         return $this->getResult();
     }
 
     public function findArea($city)
     {
+        // code 县区编码
+        //{"id":null,"status":null,"name":"桓台县","parentCode":"4530","isShow":"1","code":"4531","codeLevel":"3","codeType":"2","statusText":null}
         $this->service = "pub/citycode/YLProCity/3/{$city}";
         self::$method = 'get';
         return $this->getResult();
     }
 
+    /**
+     * 直接查询县编码
+     * @param $province
+     * @param $city
+     * @param $area
+     * @return int|string
+     * @throws GatewayException
+     */
     public function getOneToCode($province, $city, $area)
     {
+        $provinceList = $this->findProvince()['list'] ?? [];
+        $codeP = $provinceList[array_search($province, $provinceList)]['province'] ?? 0;
+        foreach ($provinceList as $key => $value) {
+            if (strrpos($value['provinceName'], $province)) {
+                $codeP = $value['province'];
+            }
+        }
 
+        $this->config['info'] = [];
+        $cityList = $this->findCity($codeP)['list'] ?? [];
+        $codeC = $cityList[array_search($city, $cityList)]['city'] ?? 0;
+        if (!$codeC) {
+            return "";
+        }
+        $this->config['info'] = [];
+        $areaList = $this->findArea($codeC)['list'] ?? [];
+        $codeA = $areaList[array_search($area, $areaList)]['code'] ?? 0;
+        if (!$codeA) {
+            return "";
+        }
+        return $codeA;
     }
 }
