@@ -388,4 +388,34 @@ class Mch extends Ruiyinxin
         $this->setReqData($data);
         return $this->getResult();
     }
+
+
+    public function findProvince()
+    {
+        $this->service = "/sys/organarea/findProvinceByOrg";
+        self::$method = 'get';
+        return $this->getResult();
+    }
+
+    public function findCity($province)
+    {
+        $this->service = "/sys/organarea/findCityByOrgAndPro";
+        $data = [
+            'province' => $province,
+        ];
+        $this->setReqData($data);
+        return $this->getResult();
+    }
+
+    public function findArea($city)
+    {
+        $this->service = "pub/citycode/YLProCity/3/{$city}";
+        self::$method = 'get';
+        return $this->getResult();
+    }
+
+    public function getOneToCode($province, $city, $area)
+    {
+
+    }
 }
