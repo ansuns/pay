@@ -58,4 +58,15 @@ abstract class GatewayInterface
     {
         return \Ansuns\Pay\Service\HttpService::get_instance()->post($url, $data, $options)->get_body();
     }
+
+
+    /**
+     * @param $url
+     * @param array $data
+     * @return array|bool
+     */
+    public function get($url, $data = [])
+    {
+        return \Ansuns\Pay\Service\HttpService::get_instance()->get($url, $data)->get_body();
+    }
 }

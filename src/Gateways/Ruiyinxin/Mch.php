@@ -3,6 +3,7 @@
 
 namespace Ansuns\Pay\Gateways\Ruiyinxin;
 
+use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
@@ -11,6 +12,7 @@ use Ansuns\Pay\Service\AesService;
 use Ansuns\Pay\Service\RsaSecurityService;
 use Ansuns\Pay\Service\RYXRSAService;
 use Ansuns\Pay\Service\ToolsService;
+use GuzzleHttp\Client;
 
 /**
  * 商户配置
@@ -21,9 +23,13 @@ class Mch extends Ruiyinxin
 {
 
     protected $gateway = "http://119.254.80.46:7080/nms/";
+    protected $gateway_prodution="https://rjp.ruiyinxin.com/nms";//正式入件地址
+    public static $accessId_prodution = "000000000000019";//正式入件地址$accessId
     public static $ivParam = '5rU34728s1GQ3242';//AES密码向量   16位
     public static $aesKey = 'ta8bphaKM8tYc5sqgloIe9/cTmIBMZIHMzk8Ey4sJ94=';
     public static $accessId = "000000000000000";
+
+    public static $method = 'post';
 
     public function __construct(array $config, string $type = 'trade')
     {
@@ -39,7 +45,6 @@ class Mch extends Ruiyinxin
             'info' => [],//（具体请求数据，该数据由AES（AES/CBC/PKCS5Padding）进行加密），
             'files' => $this->userConfig->get('files', []),
         ];
-
     }
 
     /**
@@ -49,6 +54,11 @@ class Mch extends Ruiyinxin
     protected function getTradeType()
     {
         return '';
+    }
+
+    protected function getMethod()
+    {
+        return self::$method;
     }
 
     /**
@@ -109,6 +119,7 @@ class Mch extends Ruiyinxin
 
         $commonParams = $this->getCommonParams();
         $params = $this->config['info'];
+
         //组织签名数据
         //使用私钥对数据部分openssl签名
         $signData = $this->createSignData($commonParams, $params);
@@ -144,17 +155,45 @@ class Mch extends Ruiyinxin
         $this->config['info'] = $info;
 
         $files = $this->config['files'] ?? [];
-
         unset($this->config['files']);
-        if (!empty($files)) {
-            foreach ($files as $key => $value) {
-                $this->config['files'][$key] = curl_file_create($value);
 
+        if (!empty($files)) {
+            $tmp_files = [];
+            //特殊：上传文件处理
+            foreach ($files as $key => $val) {
+                $tmp_files[] = [
+                    'name' => 'files',
+                    'contents' => fopen($val, 'r'),
+                    'filename' => $key
+                ];
             }
+
+            // 准备GuzzleHttp参数
+            $tmp = [];
+            foreach ($this->config as $k => $v) {
+                $tmp[] = [
+                    'name' => $k,
+                    'contents' => $v
+                ];
+            }
+            $this->config = array_merge($tmp, $tmp_files);
         }
+
         $url = $this->gateway . $this->service;
-        $result = $this->post($url, $this->config);
-        file_put_contents('./result.txt', json_encode(["瑞银信进件", $this->config, $result]) . PHP_EOL, FILE_APPEND);
+        $method = $this->getMethod();
+        if ($method == 'post') {
+            if ($files) {
+                $client = new Client();
+                $data = ['multipart' => $this->config];
+                $resp = $client->request('POST', $url, $data);
+                $result = $resp->getBody()->getContents();
+            } else {
+                $result = $this->post($url, $this->config);
+            }
+
+        } else {
+            $result = $this->get($url, $this->config);
+        }
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
@@ -306,6 +345,39 @@ class Mch extends Ruiyinxin
     {
         $this->setReqData(['accessMerchId' => $accessMerchId]);
         $this->service = "/ims/merch/queryMerchResult";
+        return $this->getResult();
+    }
+
+
+    /**
+     * mcc大分类
+     * @return array
+     * @throws GatewayException
+     */
+    public function queryMerchDictionary()
+    {
+        self::$method = 'get';
+        $this->service = "/pub/dictionary/M17/0";
+        return $this->getResult();
+    }
+
+    /**
+     * 查询MCC
+     * @param $parentId
+     * @param string $merProp
+     * @return array
+     * @throws GatewayException
+     */
+    public function queryMcc($parentId, $merProp = '7')
+    {
+        $this->service = "/pub/mcc/queryByParent";
+        $data = [
+            'parentId' => $parentId,
+        ];
+        if ($merProp == '7') {
+            $data['flag'] = "7";
+        }
+        $this->setReqData($data);
         return $this->getResult();
     }
 }
