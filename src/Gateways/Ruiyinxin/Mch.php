@@ -22,12 +22,11 @@ use GuzzleHttp\Client;
 class Mch extends Ruiyinxin
 {
 
-    protected $gateway = "http://119.254.80.46:7080/nms/";
-    protected $gateway_prodution="https://rjp.ruiyinxin.com/nms";//正式入件地址
-    public static $accessId_prodution = "000000000000019";//正式入件地址$accessId
-    public static $ivParam = '5rU34728s1GQ3242';//AES密码向量   16位
-    public static $aesKey = 'ta8bphaKM8tYc5sqgloIe9/cTmIBMZIHMzk8Ey4sJ94=';
-    public static $accessId = "000000000000000";
+    protected $gateway_test = "http://119.254.80.46:7080/nms/";// 测试入件地址
+    protected $gateway = "https://rjp.ruiyinxin.com/nms";//正式入件地址
+    public static $ivParam;//AES密码向量   16位
+    public static $aesKey;//aeskey 32w位
+    public static $accessId;
 
     public static $method = 'post';
 
@@ -36,15 +35,17 @@ class Mch extends Ruiyinxin
         parent::__construct($config, $type);
         //进件
         $this->config = [
-            'accessId' => self::$accessId,// $this->userConfig->get('accessId', $this->createNonceStr(16)),//（接入ID，为每个接入方分配的唯一ID），
+            'accessId' => $this->userConfig->get('access_id', ''),//（接入ID，为每个接入方分配的唯一ID），
             'reqTime' => date('YmdHis'),//请求时间，yyyyMMddHHmmss格式只接收来自1分钟内的请求
             'sign' => '',//（签名信息）
-            //加密后的 AES 对称密钥：用smzfPubKey加密cooperatorAESKey
-            'encryptKey' => AesService::aesEncrypt($this->userConfig->get('cooperatorAESKey'), $this->userConfig->get('smzfPubKey')),
-            'otherParam' => "",//,附加参数，根据不同接口该参数不同，可传空，
+            'encryptKey' => '',// 加密后的 AES 对称密钥
+            'otherParam' => '',//附加参数，根据不同接口该参数不同，可传空，
             'info' => [],//（具体请求数据，该数据由AES（AES/CBC/PKCS5Padding）进行加密），
             'files' => $this->userConfig->get('files', []),
         ];
+        self::$ivParam = "5rU34728s1GQ3242";
+        self::$aesKey = "ta8bphaKM8tYc5sqgloIe9/cTmIBMZIHMzk8Ey4sJ94=";
+        $this->gateway = $this->config['accessId'] == '000000000000000' ? $this->gateway_test : $this->gateway;
     }
 
     /**
@@ -167,7 +168,7 @@ class Mch extends Ruiyinxin
                     $tmp_files[] = [
                         'name' => 'files',
                         'contents' => fopen($val, 'r'),
-                        'filename' => $key.".{$ext}"
+                        'filename' => $key . ".{$ext}"
                     ];
                 }
             }
@@ -203,15 +204,17 @@ class Mch extends Ruiyinxin
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
+        // 获取结果的数据进行解密
+        $response_data = $this->decryptData($result);
+        $response_data = json_decode($response_data, true);
+
         if (!isset($result['encryptKey'])) {
             $response_data['return_code'] = 'EORROR'; //数据能解析则通信结果认为成功
             $response_data['result_code'] = 'EORROR'; //初始状态为成功,如果失败会重新赋值
             $response_data['return_msg'] = isset($result['msg']) ? $result['msg'] : 'EROOR!';
             return $response_data;
         }
-        // 获取结果的数据进行解密
-        $response_data = $this->decryptData($result);
-        $response_data = json_decode($response_data, true);
+
         file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
         if (!isset($response_data['code']) || $response_data['code'] != '000000') {
             $response_data['result_code'] = 'FAIL';
@@ -234,7 +237,7 @@ class Mch extends Ruiyinxin
     private function getCommonParams()
     {
         return [
-            'accessId' => self::$accessId,
+            'accessId' => $this->config['accessId'],
             'reqTime' => $this->config['reqTime'],
             'ivParam' => self::$ivParam,
         ];
@@ -258,7 +261,8 @@ class Mch extends Ruiyinxin
             $buff .= $signBuff;
         }
 
-        $privKey = $this->userConfig->get('privKey');
+        // 我方进件私钥签名
+        $privKey = $this->userConfig->get('accessPrivKey');
         $privKey = '-----BEGIN RSA PRIVATE KEY-----' . PHP_EOL . chunk_split($privKey, 64, PHP_EOL) . '-----END RSA PRIVATE KEY-----' . PHP_EOL;
 
         openssl_sign($buff, $binary_signature, $privKey, "SHA256");
@@ -304,7 +308,7 @@ class Mch extends Ruiyinxin
 
     /**
      * 加密数据
-     * RSA公钥加密方式对AES密钥进行加密，对方公钥加密
+     * RSA公钥加密方式对AES密钥进行加密，对方进件公钥加密
      * @param $str
      * @return null|string
      */
@@ -319,17 +323,17 @@ class Mch extends Ruiyinxin
 
     /**
      * 解密数据
-     * 使用RSA私钥解密AES密钥,我方私钥解密
+     * 使用RSA私钥解密AES密钥,我方进件私钥解密
      * @param $resp
      * @return false|string
      */
     public function decryptData($resp)
     {
-        $encryptKey = $resp['encryptKey'];
-        $info = $resp['info'];
+        $encryptKey = $resp['encryptKey'] ?? "";
+        $info = $resp['info'] ?? "";
 
 
-        $privKey = $this->userConfig->get('privKey');
+        $privKey = $this->userConfig->get('accessPrivKey');
         $privKey = '-----BEGIN RSA PRIVATE KEY-----' . PHP_EOL . chunk_split($privKey, 64, PHP_EOL) . '-----END RSA PRIVATE KEY-----' . PHP_EOL;
         $rsa = new RsaSecurityService('', $privKey);
         $res = $rsa->privDecrypt($encryptKey, 256);
