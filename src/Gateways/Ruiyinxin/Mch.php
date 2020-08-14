@@ -161,11 +161,15 @@ class Mch extends Ruiyinxin
             $tmp_files = [];
             //特殊：上传文件处理
             foreach ($files as $key => $val) {
-                $tmp_files[] = [
-                    'name' => 'files',
-                    'contents' => fopen($val, 'r'),
-                    'filename' => $key
-                ];
+
+                $ext = pathinfo($val, PATHINFO_EXTENSION);
+                if ($ext) {
+                    $tmp_files[] = [
+                        'name' => 'files',
+                        'contents' => fopen($val, 'r'),
+                        'filename' => $key.".{$ext}"
+                    ];
+                }
             }
 
             // 准备GuzzleHttp参数
