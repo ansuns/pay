@@ -423,7 +423,7 @@ class Mch extends Ruiyinxin
     {
         // code 县区编码
         //{"id":null,"status":null,"name":"桓台县","parentCode":"4530","isShow":"1","code":"4531","codeLevel":"3","codeType":"2","statusText":null}
-        $this->service = "/pub/citycode/YLProCity/3/{$city}";
+        $this->service = "pub/citycode/YLProCity/3/{$city}";
         self::$method = 'get';
         return $this->getResult();
     }
@@ -438,7 +438,6 @@ class Mch extends Ruiyinxin
      */
     public function getOneToCode($province, $city, $area)
     {
-        $this->config['info'] = "";
         $provinceList = $this->findProvince()['list'] ?? [];
         $codeP = $provinceList[array_search($province, $provinceList)]['province'] ?? 0;
         foreach ($provinceList as $key => $value) {
