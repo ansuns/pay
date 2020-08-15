@@ -57,16 +57,18 @@ class Miniapp extends Ruiyinxin
      */
     public function bindAppidAndPath(array $options = [])
     {
+        $pay = new self(self::$otherConfig);
         $subAppid = $options['subAppId'] ?? '';
         $merchantCode = $options['merchantCode'] ?? '';
-        $this->gateway = "https://qr.ruiyinxin.com/ydzf/wechat/gateway";
-        $this->config['tranCode'] = 'SUB_APPID'; //扫码支付
-        $this->setReqData(['subAppid' => $subAppid, 'merchantCode' => $merchantCode]);
-        $this->getResult();
-        $this->gateway = "https://qr.ruiyinxin.com/ydzf/wechat/gateway";
-        $this->config['tranCode'] = 'JSAPI_PATH'; //扫码支付
-        $this->setReqData(['jsapiPath' => "https://www.oiopay.com/api/ryx/weixin/", 'merchantCode' => $merchantCode]);
-        $this->getResult();
+        $pay->gateway = "https://qr.ruiyinxin.com/ydzf/wechat/gateway";
+        $pay->config['tranCode'] = 'SUB_APPID'; //扫码支付
+        $pay->setReqData(['subAppid' => $subAppid, 'merchantCode' => $merchantCode]);
+        $pay->getResult();
+        $pay = new self(self::$otherConfig);
+        $pay->gateway = "https://qr.ruiyinxin.com/ydzf/wechat/gateway";
+        $pay->config['tranCode'] = 'JSAPI_PATH'; //扫码支付
+        $pay->setReqData(['jsapiPath' => "https://www.oiopay.com/api/ryx/weixin/", 'merchantCode' => $merchantCode]);
+        $pay->getResult();
 
     }
 }

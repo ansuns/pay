@@ -44,6 +44,8 @@ abstract class Ruiyinxin extends GatewayInterface
     protected $gateway_wechat_test = 'http://wxtest.ruishangtong.com/ydzf/wechat/gateway';
     protected $gateway_wechat = 'https://qr.ruiyinxin.com/ydzf/wechat/gateway';
 
+    protected static $otherConfig = [];
+
     /**
      * Wechat constructor.
      * @param array $config
@@ -90,7 +92,7 @@ abstract class Ruiyinxin extends GatewayInterface
             'ext' => [],//备用域
         ];
 
-
+        self::$otherConfig = $config;
     }
 
     /**
