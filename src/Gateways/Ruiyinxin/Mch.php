@@ -22,7 +22,7 @@ use GuzzleHttp\Client;
 class Mch extends Ruiyinxin
 {
 
-    protected $gateway_test = "http://119.254.80.46:7080/nms/";// 测试入件地址
+    protected $gateway_test = "http://119.254.80.46:7080/nms";// 测试入件地址
     protected $gateway = "https://rjp.ruiyinxin.com/nms";//正式入件地址
     public static $ivParam;//AES密码向量   16位
     public static $aesKey;//aeskey 32w位
@@ -87,7 +87,7 @@ class Mch extends Ruiyinxin
     public function apply(array $options = [])
     {
         $this->setReqData($options);
-        $this->service = "ims/merch/simpleApply";
+        $this->service = "/ims/merch/simpleApply";
         return $this->getResult();
     }
 
@@ -188,7 +188,7 @@ class Mch extends Ruiyinxin
         $method = $this->getMethod();
         if ($method == 'post') {
             if ($files) {
-                $client = new Client();
+                $client = new Client(['verify' => false]);
                 $data = ['multipart' => $this->config];
                 $resp = $client->request('POST', $url, $data);
                 $result = $resp->getBody()->getContents();
@@ -423,7 +423,7 @@ class Mch extends Ruiyinxin
     {
         // code 县区编码
         //{"id":null,"status":null,"name":"桓台县","parentCode":"4530","isShow":"1","code":"4531","codeLevel":"3","codeType":"2","statusText":null}
-        $this->service = "pub/citycode/YLProCity/3/{$city}";
+        $this->service = "/pub/citycode/YLProCity/3/{$city}";
         self::$method = 'get';
         return $this->getResult();
     }
@@ -438,6 +438,7 @@ class Mch extends Ruiyinxin
      */
     public function getOneToCode($province, $city, $area)
     {
+        $this->config['info'] = "";
         $provinceList = $this->findProvince()['list'] ?? [];
         $codeP = $provinceList[array_search($province, $provinceList)]['province'] ?? 0;
         foreach ($provinceList as $key => $value) {
