@@ -30,6 +30,8 @@ class Mch extends Ruiyinxin
 
     public static $method = 'post';
 
+    public static $newConfig = [];
+
     public function __construct(array $config, string $type = 'trade')
     {
         parent::__construct($config, $type);
@@ -45,6 +47,7 @@ class Mch extends Ruiyinxin
         ];
         self::$ivParam = "5rU34728s1GQ3242";
         self::$aesKey = "ta8bphaKM8tYc5sqgloIe9/cTmIBMZIHMzk8Ey4sJ94=";
+        self::$newConfig = $config;
         $this->gateway = $this->config['accessId'] == '000000000000000' ? $this->gateway_test : $this->gateway;
     }
 
@@ -423,7 +426,7 @@ class Mch extends Ruiyinxin
     {
         // code 县区编码
         //{"id":null,"status":null,"name":"桓台县","parentCode":"4530","isShow":"1","code":"4531","codeLevel":"3","codeType":"2","statusText":null}
-        $this->service = "pub/citycode/YLProCity/3/{$city}";
+        $this->service = "/pub/citycode/YLProCity/3/{$city}";
         self::$method = 'get';
         return $this->getResult();
     }
@@ -438,25 +441,37 @@ class Mch extends Ruiyinxin
      */
     public function getOneToCode($province, $city, $area)
     {
-        $provinceList = $this->findProvince()['list'] ?? [];
-        $codeP = $provinceList[array_search($province, $provinceList)]['province'] ?? 0;
+
+        $pay = new self(self::$newConfig);
+        $provinceList = $pay->findProvince()['result']['list'] ?? [];
+
+        $codeP = $codeC = $codeA = "";
         foreach ($provinceList as $key => $value) {
-            if (strrpos($value['provinceName'], $province)) {
+            if (strpos($value['provinceName'], $province) !== false) {
                 $codeP = $value['province'];
             }
         }
 
-        $this->config['info'] = [];
-        $cityList = $this->findCity($codeP)['list'] ?? [];
-        $codeC = $cityList[array_search($city, $cityList)]['city'] ?? 0;
-        if (!$codeC) {
-            return "";
+        if (!$codeP) {
+            return $codeP;
         }
-        $this->config['info'] = [];
-        $areaList = $this->findArea($codeC)['list'] ?? [];
-        $codeA = $areaList[array_search($area, $areaList)]['code'] ?? 0;
-        if (!$codeA) {
-            return "";
+        $pay = new self(self::$newConfig);
+        $cityList = $pay->findCity($codeP)['result']['list'] ?? [];
+        foreach ($cityList as $key => $value) {
+            if (strpos($value['cityName'], $city) !== false) {
+                $codeC = $value['city'];
+
+            }
+        }
+        if (!$codeC) {
+            return $codeC;
+        }
+        $pay = new self(self::$newConfig);
+        $areaList = $pay->findArea($codeC)['result']['list'] ?? [];
+        foreach ($areaList as $key => $value) {
+            if (strpos($value['name'], $area) !== false) {
+                $codeA = $value['code'];
+            }
         }
         return $codeA;
     }
