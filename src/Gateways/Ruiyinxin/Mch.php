@@ -190,6 +190,9 @@ class Mch extends Ruiyinxin
 
         $url = $this->gateway . $this->service;
         $method = $this->getMethod();
+        if ($files) {
+            $method = 'post';
+        }
         if ($method == 'post') {
             if ($files) {
                 $client = new Client(['verify' => false]);
