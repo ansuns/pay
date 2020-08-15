@@ -32,9 +32,10 @@ class Mch extends Ruiyinxin
 
     public static $newConfig = [];
 
-    public function __construct(array $config, string $type = 'trade')
+    public function __construct(array $config)
     {
-        parent::__construct($config, $type);
+        parent::__construct($config);
+        $this->userConfig = new Config($config);
         //进件
         $this->config = [
             'accessId' => $this->userConfig->get('access_id', ''),//（接入ID，为每个接入方分配的唯一ID），
