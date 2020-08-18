@@ -206,7 +206,6 @@ class Mch extends Ruiyinxin
         } else {
             $result = $this->get($url, $this->config);
         }
-        file_put_contents('./result.txt', json_encode([$result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -477,6 +476,9 @@ class Mch extends Ruiyinxin
                 $codeA = $value['code'];
             }
         }
+        if (!$codeA) {
+            return $codeC;
+        };
         return $codeA;
     }
 }
