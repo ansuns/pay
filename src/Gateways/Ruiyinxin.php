@@ -127,6 +127,9 @@ abstract class Ruiyinxin extends GatewayInterface
 
         //合作方RSA私钥cooperatorPriKey解密encryptKey得到扫码支付平台smzfAESKey
         $rsa = new RYXRSAService($this->userConfig->get('cooperator_pri_key_path'), $this->userConfig->get('cooperator_pub_key_path'));
+        if (!isset($result['encryptData'])) {
+            throw new GatewayException($result['respMsg'] ?? '请求支付出错', 20000, $result);
+        }
         $smzfAESKey = $rsa->privDecrypt($result['encryptKey']);
         //用解密得到的smzfAESKey 解密 encryptData
         $resEncryptData = base64_decode(AesService::aesDecryptData($result['encryptData'], $smzfAESKey));
