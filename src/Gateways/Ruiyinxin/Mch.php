@@ -382,7 +382,7 @@ class Mch extends Ruiyinxin
      * @return array
      * @throws GatewayException
      */
-    public function queryMcc($parentId, $merProp = '7')
+    public function queryMcc($parentId, $merProp = '')
     {
         $this->service = "/pub/mcc/queryByParent";
         $data = [
