@@ -234,11 +234,20 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->config['tranCode'] = "SMZF006"; //交易查询
         $this->setReqData(['oriReqMsgId' => $oriReqMsgId]);
         $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            return $this->buildPayResult($data);
+
+        $oriRespType = $data['data']['oriRespType'] ?? 'E';
+        $oriRespCode = $data['data']['oriRespCode'] ?? '0000001';
+        $data['trade_state'] = 'ERROR';
+        if ($oriRespType == 'S' && $oriRespCode == '000000') {
+            $data['trade_state'] = 'SUCCESS';
         }
-        $trade_state = $data['tranSts'] ?? 'FAIL';
-        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+        if ($oriRespType == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($oriRespType == "E") {
+            $data['trade_state'] = 'CLOSED';//关闭
+        }
+
         return $data;
     }
 
