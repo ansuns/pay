@@ -30,6 +30,8 @@ abstract class Sandpay extends GatewayInterface
      */
     protected $userConfig;
 
+    protected $files;
+
     /**
      * 交易生产环境地址
      * @var string
@@ -78,7 +80,7 @@ abstract class Sandpay extends GatewayInterface
             throw new InvalidArgumentException('Missing Config -- [app_id]');
         }
         if (is_null($this->userConfig->get('private_key'))) {
-            throw new InvalidArgumentException('Missing Config -- [private_key]');
+            // throw new InvalidArgumentException('Missing Config -- [private_key]');
         }
 
         $env = $config['env'] ?? 'pro';
@@ -107,8 +109,18 @@ abstract class Sandpay extends GatewayInterface
      */
     protected function setReqData($array)
     {
+        foreach ($array as $key => $val) {
+            if (empty($val)) {
+                unset($array[$key]);
+            }
+        }
         $this->config['biz_content'] += $array;
         return $this;
+    }
+
+    protected function setUpload($array)
+    {
+        $this->files = $array;
     }
 
     /**

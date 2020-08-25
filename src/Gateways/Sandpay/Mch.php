@@ -16,6 +16,7 @@ use Ansuns\Pay\Service\ToolsService;
  */
 class Mch extends Sandpay
 {
+    protected $method = '';
 
     /**
      * 发起支付
@@ -378,16 +379,50 @@ class Mch extends Sandpay
     protected function getResult()
     {
 
-        $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
-        $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['private_key']);
-        $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gatewayAgent, json_encode($this->config, JSON_UNESCAPED_UNICODE), $header);
+        if ($this->method === 'upload') {
+            unset($this->config['biz_content']);
+            unset($this->config['sub_app_id']);
+            unset($this->config['method']);
+            unset($this->config['charset']);
+            unset($this->config['version']);
+            unset($this->config['format']);
+            $this->config['external_id'] = $this->files['external_id'];
+            $this->config['pic_type'] = $this->files['pic_type'];
+            $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['agent_private_key']);
+            $data = [];
+            $pic_file = $this->files['pic_file'];
+            $pic_type = $this->files['pic_type'];
+
+            $extensions = pathinfo($pic_file, PATHINFO_EXTENSION);
+            if ($extensions) {
+                $data[] = [
+                    'name' => 'pic_file',
+                    'contents' => fopen($pic_file, 'r'),
+                    'filename' => $pic_type . ".{$extensions}"
+                ];
+            }
+            // 准备GuzzleHttp参数
+            foreach ($this->config as $k => $v) {
+                $data[] = [
+                    'name' => $k,
+                    'contents' => $v
+                ];
+            }
+            $client = new \GuzzleHttp\Client(['verify' => false]);
+            $data = ['multipart' => $data];
+            $resp = $client->request('POST', $this->gateway_upload, $data);
+            $result = $resp->getBody()->getContents();
+        } else {
+            $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
+            $this->config['sign'] = $this->rsaSign($this->config, $this->userConfig['agent_private_key']);
+            $header = ['Content-Type: application/json'];
+            $result = $this->post($this->gatewayAgent, json_encode($this->config, JSON_UNESCAPED_UNICODE), ['headers' => $header]);
+        }
 
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        file_put_contents('./result22.txt', json_encode([$this->gatewayAgent, $this->config, $result]) . PHP_EOL, FILE_APPEND);
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'],$this->userConfig['private_key'])) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }
@@ -433,5 +468,15 @@ class Mch extends Sandpay
     protected function getTradeType()
     {
         return '';
+    }
+
+    public function upload(array $opitions)
+    {
+        $this->setUpload($opitions);
+        // $this->config['method'] = "bill.download.url.query";
+        $this->method = 'upload';
+        $data = $this->getResult();
+
+        return $data;
     }
 }
