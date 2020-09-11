@@ -119,7 +119,7 @@ abstract class Ruiyinxin extends GatewayInterface
         $this->config['encryptData'] = AesService::encrypt($data, $this->userConfig->get('cooperatorAESKey'));
         $header = ['Content-Type: application/x-www-form-urlencoded'];
         $result = $this->post($this->gateway, http_build_query($this->config), ['headers' => $header]);
-        file_put_contents('./result.txt', json_encode(["瑞银信交易", $result]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode(["瑞银信交易", $result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -138,7 +138,7 @@ abstract class Ruiyinxin extends GatewayInterface
         }
 
         $response_data = json_decode($resEncryptData, true);
-        file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['respMsg']) ? $response_data['respMsg'] : '处理成功!';

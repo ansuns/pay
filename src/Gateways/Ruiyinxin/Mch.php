@@ -221,7 +221,7 @@ class Mch extends Ruiyinxin
             return $response_data;
         }
 
-        file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode([$response_data]) . PHP_EOL, FILE_APPEND);
         if (!isset($response_data['code']) || $response_data['code'] != '000000') {
             $response_data['result_code'] = 'FAIL';
             $err_code_des = (isset($response_data['msg']) ? $response_data['msg'] : '');
