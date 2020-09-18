@@ -33,7 +33,7 @@ abstract class Chinaebi extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway = 'http://pay.uat.chinaebi.com:50080/mrpos/cashier';
+    protected $gateway = 'https://116.228.47.74:7443/transaction_agent/scan/trans';
 
     //交易类型
     const WX_NATIVE = 'WX_NATIVE';//微信扫码
@@ -47,6 +47,7 @@ abstract class Chinaebi extends GatewayInterface
 
     protected $merchant_private_key = '';
     protected $merchant_cert = '';
+    protected $body = [];
 
     /**
      * Wechat constructor.
@@ -56,47 +57,27 @@ abstract class Chinaebi extends GatewayInterface
     public function __construct(array $config)
     {
         $this->userConfig = new Config($config);
-        if (is_null($this->userConfig->get('cert_path'))) {
-            throw new InvalidArgumentException('Missing Config -- [cert_path]');
-        }
-        if (is_null($this->userConfig->get('cert_pwd'))) {
-            throw new InvalidArgumentException('Missing Config -- [cert_pwd]');
-        }
-        if (is_null($this->userConfig->get('merchant_id'))) {
-            throw new InvalidArgumentException('Missing Config -- [merchant_id]');
-        }
-        if (is_null($this->userConfig->get('service'))) {
-            throw new InvalidArgumentException('Missing Config -- [service]');
-        }
+//        if (is_null($this->userConfig->get('cert_path'))) {
+//            throw new InvalidArgumentException('Missing Config -- [cert_path]');
+//        }
+//        if (is_null($this->userConfig->get('cert_pwd'))) {
+//            throw new InvalidArgumentException('Missing Config -- [cert_pwd]');
+//        }
+//        if (is_null($this->userConfig->get('merchant_id'))) {
+//            throw new InvalidArgumentException('Missing Config -- [merchant_id]');
+//        }
+//        if (is_null($this->userConfig->get('service'))) {
+//            throw new InvalidArgumentException('Missing Config -- [service]');
+//        }
         $this->config = [
-            'charset' => '00',// 字符集，固定值：00；代表 GBK
-            'version' => '1.1',//  接口版本 String(3) Y 固定值：1.1
-            'signType' => 'RSA',//  签名类型，固定值：RSA
-            'merchantSign' => '',//  签名
-            'merchantCert' => '',//  商户证书
-            'service' => $this->userConfig->get('service'),//  接口
-            'merchantId' => $this->userConfig->get('merchant_id'),//  商户号
-            'requestId' => $this->createNonceStr(32),//  请求号，仅能用大小写字母与数字，且在商户系统具有唯一性
+            'merc_id' => $this->userConfig->get('merc_id'), // 商户号
+            'send_time' => date("Ymd"), // 交易发起时间
+            'org_id' => $this->userConfig->get('org_id'), //机构号
+            'charset' => 'UTF-8', // 字符集
+            'version' => '1.0', // 接口版本
+            'sign_type' => 'RSA', // 签名类型
+            //'sign' => '',//签名
         ];
-
-        $this->setCert();
-    }
-
-    /**
-     * 解析密钥
-     */
-    protected function setCert()
-    {
-        $certs = array();
-        $privkeypass = $this->userConfig->get('cert_pwd');// 私钥密码
-        $pfxpath = $this->userConfig->get('cert_path'); //密钥文件路径
-        $priv_key = file_get_contents($pfxpath); //获取密钥文件内容
-        openssl_pkcs12_read($priv_key, $certs, $privkeypass); //读取公钥、私钥
-        $this->merchant_private_key = $certs['pkey']; //私钥
-        $merchantCert = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----'], "", $certs['cert']);
-        $merchantCert = base64_decode($merchantCert, 1);
-        $merchantCert = strtoupper(bin2hex($merchantCert));
-        $this->merchant_cert = $merchantCert;
     }
 
     /**
@@ -106,7 +87,7 @@ abstract class Chinaebi extends GatewayInterface
      */
     protected function setReqData($array)
     {
-        $this->config = array_merge($this->config, $array);
+        $this->body += $array;
         return $this;
     }
 
@@ -117,17 +98,21 @@ abstract class Chinaebi extends GatewayInterface
      */
     protected function getResult()
     {
-        $this->config['merchantSign'] = $this->getSign($this->config);
-        $this->config['merchantCert'] = $this->merchant_cert;
+        $this->config['sign'] = $this->getSign($this->config);
 
         $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gateway, json_encode($this->config), ['headers' => $header]);
-        $result = mb_convert_encoding($result, "utf8", "gbk");
+        $request = [
+            'head' => $this->config,
+            'body' => $this->body
+        ];
+        $result = $this->post($this->gateway, json_encode($request), ['headers' => $header]);
+        file_put_contents('./result.txt', json_encode($request) . PHP_EOL, FILE_APPEND);
+        file_put_contents('./result.txt', json_encode([$result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        file_put_contents('./result.txt', json_encode(["电银交易", $this->config, $result]) . PHP_EOL, FILE_APPEND);
+
         if (!$this->verify($result) || $result['rspCode'] != '000000') {
             throw new GatewayException('验证签名失败', 20000, $result);
         }
@@ -385,14 +370,21 @@ abstract class Chinaebi extends GatewayInterface
      * @param $params
      * @return string
      */
-    protected function getSign($params)
+    protected function getSign($data)
     {
-        ksort($params);
-        $str = mb_convert_encoding($this->getSignContent($params), "gbk", "utf8");
-        //注册生成加密信息
-        openssl_sign($str, $signMsg, $this->merchant_private_key, OPENSSL_ALGO_SHA256);
-        $merchantSign = strtoupper(bin2hex($signMsg));
-        return $merchantSign;
+
+        $data += $this->body;
+        if (is_null($this->userConfig->get('private_key'))) {
+            throw new InvalidArgumentException('Missing Config -- [private_key]');
+        }
+        $data = $this->getSignContent($data);
+        $private_key = "-----BEGIN RSA PRIVATE KEY-----\n" .
+            wordwrap($this->userConfig->get('private_key'), 64, "\n", true) .
+            "\n-----END RSA PRIVATE KEY-----";
+        $res = openssl_get_privatekey($private_key);
+        openssl_sign($data, $sign, $res, "SHA256");
+        openssl_free_key($res);
+        return base64_encode($sign);  //base64编码
     }
 
     /**
@@ -405,22 +397,17 @@ abstract class Chinaebi extends GatewayInterface
         ksort($sign_data);
         $params = [];
         foreach ($sign_data as $key => $value) {
-
-            if ($value == '') {
-                continue;
-            }
-            
             if (is_array($value)) {
                 $value = stripslashes(json_encode($value, JSON_UNESCAPED_UNICODE));
             }
-            if (!in_array($key, ['merchantCert', 'serverCert', 'sign', 'serverSign', 'merchantSign'])) {
+            if ($value == '') {
+                continue;
+            }
+            if (!in_array($key, ['merchantCert', 'serverCert', 'sign', 'serverSign', 'merchantSign', 'sign_type'])) {
                 $params[] = $key . '=' . $value;
             }
-
         }
-        $data = implode("&", $params);
-
-        return $data;
+        return implode("&", $params);
     }
 
     /**
