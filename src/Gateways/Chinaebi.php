@@ -45,6 +45,8 @@ abstract class Chinaebi extends GatewayInterface
     const WX_JSAPP = 'WX_JSAPP';//微信APP支付
     const ALI_JSAPI = 'ALI_JSAPI';//标准支付宝小程序支付
 
+    protected $merchant_private_key = '';
+    protected $merchant_cert = '';
 
     /**
      * Wechat constructor.
@@ -54,36 +56,47 @@ abstract class Chinaebi extends GatewayInterface
     public function __construct(array $config)
     {
         $this->userConfig = new Config($config);
-//        if (is_null($this->userConfig->get('org_id'))) {
-//            throw new InvalidArgumentException('Missing Config -- [org_id]');
-//        }
-//        if (is_null($this->userConfig->get('mno'))) {
-//            //throw new InvalidArgumentException('Missing Config -- [mno]');
-//        }
-//        if (is_null($this->userConfig->get('sxf_pub_key'))) {
-//            throw new InvalidArgumentException('Missing Config -- [sxf_pub_key]');
-//        }
-//        if (is_null($this->userConfig->get('cooprator_pri_key'))) {
-//            //throw new InvalidArgumentException('Missing Config -- [cooprator_pri_key]');
-//        }
-//        if (is_null($this->userConfig->get('cooprator_pub_key'))) {
-//            //throw new InvalidArgumentException('Missing Config -- [cooprator_pub_key]');
-//        }
-//        if (!empty($config['cache_path'])) {
-//            HttpService::$cachePath = $config['cache_path'];
-//        }
+        if (is_null($this->userConfig->get('cert_path'))) {
+            throw new InvalidArgumentException('Missing Config -- [cert_path]');
+        }
+        if (is_null($this->userConfig->get('cert_pwd'))) {
+            throw new InvalidArgumentException('Missing Config -- [cert_pwd]');
+        }
+        if (is_null($this->userConfig->get('merchant_id'))) {
+            throw new InvalidArgumentException('Missing Config -- [merchant_id]');
+        }
+        if (is_null($this->userConfig->get('service'))) {
+            throw new InvalidArgumentException('Missing Config -- [service]');
+        }
         $this->config = [
             'charset' => '00',// 字符集，固定值：00；代表 GBK
             'version' => '1.1',//  接口版本 String(3) Y 固定值：1.1
             'signType' => 'RSA',//  签名类型，固定值：RSA
             'merchantSign' => '',//  签名
             'merchantCert' => '',//  商户证书
-            'service' => 'DowDirectPay',//  交易接口 String(32) Y 固定: DowDirectPay
-            'transType' => '',//  交易类型（）
-            'merchantId' => '',//  商户号
-            'orderId' => time(),//  商户订单号
+            'service' => $this->userConfig->get('service'),//  接口
+            'merchantId' => $this->userConfig->get('merchant_id'),//  商户号
             'requestId' => $this->createNonceStr(32),//  请求号，仅能用大小写字母与数字，且在商户系统具有唯一性
         ];
+
+        $this->setCert();
+    }
+
+    /**
+     * 解析密钥
+     */
+    protected function setCert()
+    {
+        $certs = array();
+        $privkeypass = $this->userConfig->get('cert_pwd');// 私钥密码
+        $pfxpath = $this->userConfig->get('cert_path'); //密钥文件路径
+        $priv_key = file_get_contents($pfxpath); //获取密钥文件内容
+        openssl_pkcs12_read($priv_key, $certs, $privkeypass); //读取公钥、私钥
+        $this->merchant_private_key = $certs['pkey']; //私钥
+        $merchantCert = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----'], "", $certs['cert']);
+        $merchantCert = base64_decode($merchantCert, 1);
+        $merchantCert = strtoupper(bin2hex($merchantCert));
+        $this->merchant_cert = $merchantCert;
     }
 
     /**
@@ -104,40 +117,29 @@ abstract class Chinaebi extends GatewayInterface
      */
     protected function getResult()
     {
-        //  $this->config['reqData'] = json_encode($this->config['reqData'], JSON_UNESCAPED_UNICODE);
-
         $this->config['merchantSign'] = $this->getSign($this->config);
+        $this->config['merchantCert'] = $this->merchant_cert;
+
         $header = ['Content-Type: application/json'];
-        $result = $this->post($this->gateway, $this->config, ['headers' => $header]);
-        //var_dump($result);
-        //file_put_contents('./result.txt', json_encode([$result, $this->config]) . PHP_EOL, FILE_APPEND);
+        $result = $this->post($this->gateway, json_encode($this->config), ['headers' => $header]);
+        $result = mb_convert_encoding($result, "utf8", "gbk");
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
-        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
+        file_put_contents('./result.txt', json_encode(["电银交易", $this->config, $result]) . PHP_EOL, FILE_APPEND);
+        if (!$this->verify($result) || $result['rspCode'] != '000000') {
             throw new GatewayException('验证签名失败', 20000, $result);
         }
-        //错误示例1{"msg":"subOpenId or subAppid is empty","code":"SXF0002"}
-        //错误示例2{"msg":"操作成功","code":"SXF0000","sign":"XX","respData":{"bizMsg":"交易失败，请联系客服","bizCode":"2010","uuid":"093755621dc64ce0b3cfda3c335a83e5"},"signType":"RSA","orgId":"21561002","reqId":"3FQillJLkDGMxngvRKfbYo3kccuBIGYy"}
+
         $response_data = $result['respData'] ?? $result;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($result['code']) || $result['code'] !== 'SXF0000' || (isset($response_data['bizCode']) && $response_data['bizCode'] !== '0000')) {
+        if (!isset($result['rspCode']) || $result['rspCode'] !== '000000') {
             $response_data['result_code'] = 'FAIL';
-            $err_code_des = 'ERROR_MSG:' . (isset($result['msg']) ? $result['msg'] : '');
-            $err_code_des .= isset($result['code']) ? ';ERROR_CODE:' . $result['code'] : '';
-            $err_code_des .= isset($response_data['bizCode']) ? ';ERROR_SUB_CODE:' . $response_data['bizCode'] : '';
-            $err_code_des .= isset($response_data['bizMsg']) ? ';ERROR_SUB_MSG:' . $response_data['bizMsg'] : '';
-            $err_code = isset($response_data['bizCode']) ? $response_data['bizCode'] : 'FAIL';
-            if (isset($response_data['msg']) && (strpos($response_data['msg'], 'ordNo不能重复') !== false)) {
-                //针对商城特殊判断返回
-                // {"msg":"ordNo不能重复","code":"SXF0002"}
-                $err_code = 'INVALID_REQUEST';
-            }
-            $response_data['err_code'] = $err_code;
-            $response_data['err_code_des'] = $err_code_des;
+            $response_data['err_code'] = $result['rspCode'];
+            $response_data['err_code_des'] = $result['rspMessage'];
         }
         return $response_data;
     }
@@ -273,23 +275,16 @@ abstract class Chinaebi extends GatewayInterface
     }
 
     /**RSA验签
-     * @param array $data 待签名数据
+     * @param array $params 待签名数据
      * @param string|null $sign 需要验签的签名
      * @param bool|string $pub_key
      * @return bool 验签是否通过 bool值
      */
-    public function verify($data, $sign = null, $pub_key = false)
+    public function verify($params, $sign = null, $pub_key = false)
     {
-        $str = chunk_split($pub_key, 64, "\n");
-        $public_key = "-----BEGIN PUBLIC KEY-----\n$str-----END PUBLIC KEY-----\n";
-        //转换为openssl格式密钥
-        $res = openssl_get_publickey($public_key);
-        //调用openssl内置方法验签，返回bool值
-        $result = (bool)openssl_verify($data, base64_decode($sign), $public_key);
-        //释放资源
-        openssl_free_key($res);
-        //返回资源是否成功
-        return $result;
+        $str = $this->getSignContent($params);
+        $pubkey = $this->convertPublicKey(base64_encode(hex2bin($params['serverCert']))); //格式化公钥
+        return openssl_verify($str, hex2bin($params['serverSign']), $pubkey, OPENSSL_ALGO_SHA256); // 返回验签结果
     }
 
     /**
@@ -384,35 +379,20 @@ abstract class Chinaebi extends GatewayInterface
         exit();
     }
 
-    public function strToGBK($strText)
-    {
-        $encode = mb_detect_encoding($strText, array('UTF-8', 'GB2312', 'GBK'));
-        if ($encode == "UTF-8") {
-            return @iconv('UTF-8', 'GB18030', $strText);
-        } else {
-            return $strText;
-        }
-    }
 
     /**
      * 生成内容签名
-     * @param $data
+     * @param $params
      * @return string
      */
-    protected function getSign($data)
+    protected function getSign($params)
     {
-        if (is_null($this->userConfig->get('private_key'))) {
-            throw new InvalidArgumentException('Missing Config -- [private_key]');
-        }
-        ksort($data);
-        $data = $this->getSignContent($data);
-        file_put_contents('./result.txt', json_encode(['getSignContent', $data]) . PHP_EOL, FILE_APPEND);
-        $private_key = $this->userConfig->get('private_key');
-
-        $res = openssl_get_privatekey($private_key);
-        openssl_sign($data, $sign, $res);
-        openssl_free_key($res);
-        return base64_encode($sign);  //base64编码
+        ksort($params);
+        $str = mb_convert_encoding($this->getSignContent($params), "gbk", "utf8");
+        //注册生成加密信息
+        openssl_sign($str, $signMsg, $this->merchant_private_key, OPENSSL_ALGO_SHA256);
+        $merchantSign = strtoupper(bin2hex($signMsg));
+        return $merchantSign;
     }
 
     /**
@@ -425,6 +405,11 @@ abstract class Chinaebi extends GatewayInterface
         ksort($sign_data);
         $params = [];
         foreach ($sign_data as $key => $value) {
+
+            if ($value == '') {
+                continue;
+            }
+            
             if (is_array($value)) {
                 $value = stripslashes(json_encode($value, JSON_UNESCAPED_UNICODE));
             }
@@ -436,6 +421,26 @@ abstract class Chinaebi extends GatewayInterface
         $data = implode("&", $params);
 
         return $data;
+    }
+
+    /**
+     * 格式化公钥
+     * @param $publicKey
+     * @return string
+     */
+    protected function convertPublicKey($publicKey)
+    {
+        //判断是否传入公钥内容
+        $public_key_string = !empty($publicKey) ? $publicKey : '';
+        //64位换行公钥钥内容
+        $public_key_string = chunk_split($public_key_string, 64, "\n");
+        //公钥头部
+        $public_key_header = "-----BEGIN CERTIFICATE-----" . PHP_EOL;
+        //公钥尾部
+        $public_key_footer = "-----END CERTIFICATE-----";
+        //完整公钥拼接
+        $public_key_string = $public_key_header . $public_key_string . $public_key_footer;
+        return $public_key_string;
     }
 
     /**
