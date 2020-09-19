@@ -8,6 +8,7 @@ use Ansuns\Pay\Contracts\HttpService;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\ToolsService;
+use GuzzleHttp\Client;
 
 /**
  * 电银支付基础类
@@ -105,26 +106,35 @@ abstract class Chinaebi extends GatewayInterface
             'head' => $this->config,
             'body' => $this->body
         ];
-        $result = $this->post($this->gateway, json_encode($request), ['headers' => $header]);
+        //  $result = $this->post($this->gateway, json_encode($request), ['headers' => $header]);
+
         file_put_contents('./result.txt', json_encode($request) . PHP_EOL, FILE_APPEND);
-        file_put_contents('./result.txt', json_encode([$result]) . PHP_EOL, FILE_APPEND);
+        $client = new Client(['verify' => false]);
+        //$result  = $client->request('POST',$this->gateway,['json'=>$request]);
+        $data_string = json_encode($request);
+        $result = $client->request('POST', $this->gateway, ['body' => $data_string,
+            'headers' => ['Content-Type' => 'application/json',]
+        ])->getBody()->getContents();
+
+        file_put_contents('./result.txt', json_encode([777, $result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
         $result = json_decode($result, true);
 
-        if (!$this->verify($result) || $result['rspCode'] != '000000') {
-            throw new GatewayException('验证签名失败', 20000, $result);
-        }
+//        if (!$this->verify($result) || $result['res_code'] != '000000') {
+//            throw new GatewayException('验证签名失败', 20000, $result);
+//        }
 
-        $response_data = $result['respData'] ?? $result;
+        $headData = $result['head'] ?? [];
+        $response_data = $result['body'] ?? [];
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if (!isset($result['rspCode']) || $result['rspCode'] !== '000000') {
+        $response_data['return_msg'] = isset($response_data['res_msg']) ? $response_data['res_msg'] : 'OK!';
+        if (!isset($headData['res_code']) || $headData['res_code'] !== '00') {
             $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = $result['rspCode'];
-            $response_data['err_code_des'] = $result['rspMessage'];
+            $response_data['err_code'] = $headData['res_code'];
+            $response_data['err_code_des'] = $headData['res_msg'];
         }
         return $response_data;
     }
