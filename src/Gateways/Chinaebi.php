@@ -100,17 +100,11 @@ abstract class Chinaebi extends GatewayInterface
     protected function getResult()
     {
         $this->config['sign'] = $this->getSign($this->config);
-
-        $header = ['Content-Type: application/json'];
         $request = [
             'head' => $this->config,
             'body' => $this->body
         ];
-        //  $result = $this->post($this->gateway, json_encode($request), ['headers' => $header]);
-
-        file_put_contents('./result.txt', json_encode($request) . PHP_EOL, FILE_APPEND);
         $client = new Client(['verify' => false]);
-        //$result  = $client->request('POST',$this->gateway,['json'=>$request]);
         $data_string = json_encode($request);
         $result = $client->request('POST', $this->gateway, ['body' => $data_string,
             'headers' => ['Content-Type' => 'application/json',]
@@ -131,6 +125,7 @@ abstract class Chinaebi extends GatewayInterface
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['res_msg']) ? $response_data['res_msg'] : 'OK!';
+        $response_data['rawdata'] = $result;
         if (!isset($headData['res_code']) || $headData['res_code'] !== '00') {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = $headData['res_code'];
