@@ -49,10 +49,11 @@ abstract class GatewayInterface
 
     /**
      * 网络模拟请求
-     * @param string $url 网络请求URL
-     * @param array|string $data 请求数据
-     * @param array $options
-     * @return bool|string
+     * @param $url 网络请求URL
+     * @param $data
+     * @param array $options 请求数据
+     * @return array|bool
+     * @throws \Exception
      */
     public function post($url, $data, $options = [])
     {
@@ -68,5 +69,27 @@ abstract class GatewayInterface
     public function get($url, $data = [])
     {
         return \Ansuns\Pay\Service\HttpService::get_instance()->get($url, $data)->get_body();
+    }
+
+    protected function successReturn($data)
+    {
+        $response_data['return_code'] = 'SUCCESS'; // 通信：数据能解析则通信结果认为成功
+        $response_data['result_code'] = 'SUCCESS'; // 业务：初始状态为成功，如果失败会重新赋值
+        $response_data['return_msg'] = $data['head']['res_msg'] ?? "OK"; // 提示
+        $response_data['return_msg_des'] = $data['head']['res_msg'] ?? "OK"; // 提示，详细
+        $response_data['data'] = $data['successData'] ?? (object)[];
+        $response_data['rawdata'] = $data;// 原始数据
+        return $response_data;
+    }
+
+    protected function failedReturn($data)
+    {
+        $response_data['return_code'] = 'SUCCESS'; // 通信：数据能解析则通信结果认为成功
+        $response_data['result_code'] = $data['head']['res_code'] ?? 'FAIL'; // 业务：初始状态为成功，如果失败会重新赋值
+        $response_data['error_msg'] = $data['head']['res_msg'] ?? 'ERROR'; // 提示
+        $response_data['error__msg_des'] = $data['head']['res_msg'] ?? 'ERROR'; // 提示，详细
+        $response_data['data'] = (object)[];
+        $response_data['rawdata'] = $data;// 原始数据
+        return $response_data;
     }
 }

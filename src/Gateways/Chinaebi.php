@@ -110,7 +110,7 @@ abstract class Chinaebi extends GatewayInterface
             'headers' => ['Content-Type' => 'application/json',]
         ])->getBody()->getContents();
 
-        file_put_contents('./result.txt', json_encode([777, $result]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode([777, $result]) . PHP_EOL, FILE_APPEND);
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -121,7 +121,7 @@ abstract class Chinaebi extends GatewayInterface
 //        }
 
         $headData = $result['head'] ?? [];
-        $response_data = $result['body'] ?? [];
+        $response_data = $result;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['res_msg']) ? $response_data['res_msg'] : 'OK!';

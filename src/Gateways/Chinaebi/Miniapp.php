@@ -33,16 +33,22 @@ class Miniapp extends Chinaebi
     {
         $this->setReqData($options);
         $result = $this->getResult();
-        return $result;
         if ($this->isSuccess($result)) {
-            $pay_request = [
-                'appId' => $result['payAppId'],
-                'timeStamp' => $result['payTimeStamp'],
-                'nonceStr' => $result['paynonceStr'],
-                'signType' => $result['paySignType'],
-                'package' => $result['payPackage'],
-                'paySign' => $result['paySign'],
-            ];
+            $trans_type = $result['body']['trans_type'] ?? 'WX_JSAPI';
+            if ($trans_type == 'WX_JSAPI') {
+                $wx_pay_info = json_decode($result['body']['wx_pay_info'], true);
+                $pay_request = [
+                    'appId' => $wx_pay_info['appId'],
+                    'timeStamp' => $wx_pay_info['timeStamp'],
+                    'nonceStr' => $wx_pay_info['nonceStr'],
+                    'signType' => $wx_pay_info['signType'],
+                    'package' => $wx_pay_info['package'],
+                    'paySign' => $wx_pay_info['paySign'],
+                ];
+            } else {
+                //商户页面通过 JSSDK 直接调用支付宝 APP 时，商户需要将返回的交易号 TradeNo 去掉前两位
+                $pay_request['trade_no'] = substr_replace($result['body']['al_pay_info'], '', 0, 2);;
+            }
             return $pay_request;
         } else {
             //特定失败自动尝试配置APPID
@@ -57,7 +63,7 @@ class Miniapp extends Chinaebi
                     ]);
                     $this->getResult();
                 } catch (\Exception $e) {
-                    wr_log($e->getMessage());
+                   // wr_log($e->getMessage());
                 }
             }
         }
