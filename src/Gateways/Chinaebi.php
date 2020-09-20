@@ -126,10 +126,10 @@ abstract class Chinaebi extends GatewayInterface
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['res_msg']) ? $response_data['res_msg'] : 'OK!';
         $response_data['rawdata'] = $result;
-        if (!isset($headData['res_code']) || $headData['res_code'] !== '00') {
+        if (!isset($headData['res_code']) || $headData['res_code'] != '00') {
             $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = $headData['res_code'];
-            $response_data['err_code_des'] = $headData['res_msg'];
+            $response_data['err_code'] = $headData['res_code'] ?? 'UNKNOW_ERROR_CODE';
+            $response_data['err_code_des'] = $headData['res_msg'] ?? '未知错误';
         }
         return $response_data;
     }
