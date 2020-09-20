@@ -143,11 +143,11 @@ abstract class Chinaebi extends GatewayInterface
     public function refund($options = [])
     {
         $refundData = [
+            'trancde' => 'P02',
+            'refund_amount' => $options['refund_amount'],//退款金额。分
             'mer_order_no' => $options['out_trade_no'],//原笔交易订单号或原交易支付请求号
             'mer_refund_order_no' => $options['out_refund_no'],//商户退款单号
-            'refund_amount' => $options['refund_amount'],//退款金额。分
-            'trancde' => 'P02',
-            'refund_remark' => $options['refund_remark'] ?? ' 申请退款'
+            'refund_remark' => $options['refund_remark'] ?? '申请退款'
         ];
         if (isset($options['merc_detail'])) {
             $refundData['merc_detail'] = [
