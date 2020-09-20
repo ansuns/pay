@@ -174,6 +174,7 @@ abstract class Chinaebi extends GatewayInterface
         if ($refund_result == "F") {
             $data['trade_state'] = 'FAIL';//失败
         }
+
         return $data;
     }
 
@@ -248,34 +249,24 @@ abstract class Chinaebi extends GatewayInterface
         if ($pay_result == "F") {
             $data['trade_state'] = 'FAIL';//失败
         }
+
+        $data = $this->buildPayResult($data);
+
         return $data;
     }
 
     protected function buildPayResult($data)
     {
-        $return = [
-            'return_code' => $data['return_code'], //通信结果
-            'return_msg' => $data['return_msg'],
-            'result_code' => $data['result_code'],
-            'appid' => isset($data['appId']) ? $data['appId'] : '',
-            'mch_id' => '',
-            'device_info' => '',
-            'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-            'sign' => isset($data['sign']) ? $data['sign'] : '',
-            'openid' => isset($data['buyerId']) ? $data['buyerId'] : '',
-            'is_subscribe' => '',
-            'trade_type' => isset($data['payType']) ? $data['payType'] : '',
-            'bank_type' => '',
-            'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
-            'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
-            'out_trade_no' => isset($data['ordNo']) ? $data['ordNo'] : '',
-            'attach' => '',
-            //'time_end'       => ToolsService::format_time($data['payTime']),
-            'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
-            'trade_state' => isset($data['tranSts']) ? $data['tranSts'] : $data['result_code'],
-            'raw_data' => $data
-        ];
-        return $return;
+        $data['openid'] = $data['body']['open_id'] ?? '';
+        $data['pay_amount'] = isset($data['body']['pay_amount']) ? ToolsService::ncPriceFen2yuan($data['body']['pay_amount']) : '';
+        $data['pay_time'] = strtotime($data['body']['pay_time']) ?? time();
+        $data['channel_no'] = $data['body']['channel_no']??'';
+        //02：支付宝, 01：微信, 03: 银联
+        if ($data['body']['pay_type'] == '02' || $data['body']['pay_type'] == 'AL_JSAPI' || $data['body']['pay_type'] == 'ALIPAY') {
+            $data['channel_no'] = substr_replace($data['channel_no'], '', 0, 2);;
+        }
+        unset($data['head'],$data['body']);
+        return $data;
     }
 
     /**RSA验签

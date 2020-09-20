@@ -47,7 +47,7 @@ class Miniapp extends Chinaebi
                 ];
             } else {
                 //商户页面通过 JSSDK 直接调用支付宝 APP 时，商户需要将返回的交易号 TradeNo 去掉前两位
-                $pay_request['trade_no'] = substr_replace($result['body']['al_pay_info'], '', 0, 2);;
+                $pay_request['trade_no'] = substr_replace($result['body']['al_pay_info'], '', 0, 2);
             }
             $result['success_data'] = $pay_request;
             return $result;
