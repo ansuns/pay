@@ -142,30 +142,37 @@ abstract class Chinaebi extends GatewayInterface
      */
     public function refund($options = [])
     {
-        $this->service = "/qr/refund";
-        $this->setReqData([
-            'ordNo' => $options['out_refund_no'],
-            'origOrderNo' => $options['out_trade_no'],
-            'amt' => ToolsService::ncPriceFen2yuan($options['refund_fee']),
-        ]);
-        $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            $return = [
-                'return_code' => $data['return_code'], //通信结果
-                'return_msg' => $data['return_msg'],
-                'result_code' => $data['result_code'],
-                'appid' => isset($data['appId']) ? $data['appId'] : '',
-                'mch_id' => '',
-                'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-                'sign' => isset($data['sign']) ? $data['sign'] : '',
-                'out_refund_no' => $data['ordNo'],
-                'out_trade_no' => $data['origOrderNo'],
-                'refund_id' => '',
-                'transaction_id' => '',
-                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
-                'raw_data' => $data
+        $out_trade_no = $options['out_trade_no'];//原笔交易订单号或原交易支付请求号
+        $mer_refund_order_no = $options['out_refund_no'];//商户退款单号
+        $refund_amount = $options['refund_amount'];//退款金额。分
+        $refundData = [
+            'mer_order_no' => $out_trade_no,
+            'refund_order_no' => $mer_refund_order_no,
+            'refund_amount' => $refund_amount,
+            'trancde' => 'PF0'
+        ];
+        if (isset($options['merc_detail'])) {
+            $refundData['merc_detail'] = [
+                'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
+                'recMerchantId' => $refundData['merc_detail']['recMerchantId'],// 商户号 String(20) Y
+                'payAmt' => $refundData['merc_detail']['payAmt'],// 分账金额 String(12) Y 单位：分
+                'description' => $refundData['merc_detail']['description'] ?? '分账退款'//分账描述
             ];
-            return $return;
+        }
+        $this->setReqData($refundData);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $refund_result = $data['body']['refund_result'] ?? 'F';
+        if ($refund_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($refund_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($refund_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
         }
         return $data;
     }
@@ -220,20 +227,27 @@ abstract class Chinaebi extends GatewayInterface
 
     /**
      * 查询订单状态OK
-     * @param string $out_trade_no
+     * @param string $out_trade_no 商户订单号(原交易
      * @return array
      * @throws GatewayException
      */
     public function find($out_trade_no = '')
     {
-        $this->service = "/qr/query";
-        $this->setReqData(['ordNo' => $out_trade_no]);
+        $this->setReqData(['mer_order_no' => $out_trade_no, 'trancde' => 'PF0']);
         $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            return $this->buildPayResult($data);
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
         }
-        $trade_state = $data['tranSts'] ?? 'FAIL';
-        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+        $pay_result = $data['body']['pay_result'] ?? 'F';
+        if ($pay_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($pay_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($pay_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
+        }
         return $data;
     }
 
