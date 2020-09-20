@@ -142,14 +142,12 @@ abstract class Chinaebi extends GatewayInterface
      */
     public function refund($options = [])
     {
-        $out_trade_no = $options['out_trade_no'];//原笔交易订单号或原交易支付请求号
-        $mer_refund_order_no = $options['out_refund_no'];//商户退款单号
-        $refund_amount = $options['refund_amount'];//退款金额。分
         $refundData = [
-            'mer_order_no' => $out_trade_no,
-            'refund_order_no' => $mer_refund_order_no,
-            'refund_amount' => $refund_amount,
-            'trancde' => 'PF0'
+            'mer_order_no' => $options['out_trade_no'],//原笔交易订单号或原交易支付请求号
+            'mer_refund_order_no' => $options['out_refund_no'],//商户退款单号
+            'refund_amount' => $options['refund_amount'],//退款金额。分
+            'trancde' => 'P02',
+            'refund_remark' => $options['refund_remark'] ?? ' 申请退款'
         ];
         if (isset($options['merc_detail'])) {
             $refundData['merc_detail'] = [
@@ -174,7 +172,7 @@ abstract class Chinaebi extends GatewayInterface
         if ($refund_result == "F") {
             $data['trade_state'] = 'FAIL';//失败
         }
-
+        $data = $this->buildPayResult($data);
         return $data;
     }
 
