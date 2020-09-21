@@ -97,12 +97,11 @@ class Mch extends Chinaebi
 
     /**
      * 生成内容签名
-     * @param $params
+     * @param $data
      * @return string
      */
     protected function getSign($data)
     {
-
         $signData = [];
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -115,48 +114,46 @@ class Mch extends Chinaebi
                 $signData[$key] = $value;
             }
         }
-        ksort($signData);
-        $dataStr = json_encode($signData, JSON_UNESCAPED_UNICODE);
 
+        ksort($signData);
         if (is_null($this->userConfig->get('private_key'))) {
             throw new InvalidArgumentException('Missing Config -- [private_key]');
         }
-        $data = json_encode($dataStr, JSON_UNESCAPED_UNICODE);
+
+        $dataJson = json_encode($signData, JSON_UNESCAPED_UNICODE);
         $private_key = "-----BEGIN RSA PRIVATE KEY-----\n" .
             wordwrap($this->userConfig->get('private_key'), 64, "\n", true) .
             "\n-----END RSA PRIVATE KEY-----";
         $res = openssl_get_privatekey($private_key);
-        openssl_sign($data, $sign, $res, OPENSSL_ALGO_MD5);
+        openssl_sign($dataJson, $sign, $res, OPENSSL_ALGO_MD5);
         openssl_free_key($res);
         return base64_encode($sign);  //base64编码
 
     }
 
+
     /**
      * 获取验证访问数据
-     * @return array
+     * @return array|mixed
      * @throws GatewayException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function getResult()
     {
         $files = $this->body['files'] ?? [];
         unset($this->body['files']);
-
         $this->body['sign'] = $this->getSign($this->body);
-
         $newData = [];
         if (!empty($files)) {
             $tmp_files = [];
             //特殊：上传文件处理
             foreach ($files as $key => $val) {
-
                 if (empty($val)) {
                     continue;
                 }
                 $tmp_files[] = [
                     'name' => $key,
                     'contents' => fopen($val, 'r'),
-                    // 'filename' => $key
                 ];
             }
 
@@ -171,14 +168,11 @@ class Mch extends Chinaebi
             $newData = array_merge($tmp, $tmp_files);
         }
 
-
         $client = new Client(['verify' => false]);
         $data = ['multipart' => $newData];
         $url = $this->gatewayMch . $this->service;
-        file_put_contents('./result.txt', json_encode([777, $data]) . PHP_EOL, FILE_APPEND);
         $result = $client->request('POST', $url, $data)->getBody()->getContents();
-
-        file_put_contents('./result.txt', json_encode([8888, $result]) . PHP_EOL, FILE_APPEND);
+        
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -188,16 +182,15 @@ class Mch extends Chinaebi
 //            throw new GatewayException('验证签名失败', 20000, $result);
 //        }
 
-        $headData = $result['head'] ?? [];
         $response_data = $result;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['res_msg']) ? $response_data['res_msg'] : 'OK!';
         $response_data['rawdata'] = $result;
-        if (!isset($headData['res_code']) || $headData['res_code'] != '00') {
+        if (!isset($result['code']) || $result['code'] != '000000') {
             $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = $headData['res_code'] ?? 'UNKNOW_ERROR_CODE';
-            $response_data['err_code_des'] = $headData['res_msg'] ?? '未知错误';
+            $response_data['err_code'] = $result['msg'] ?? 'UNKNOW_ERROR_CODE';
+            $response_data['err_code_des'] = $result['msg'] ?? '未知错误';
         }
         return $response_data;
     }
