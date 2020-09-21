@@ -34,7 +34,9 @@ abstract class Chinaebi extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway = 'https://116.228.47.74:7443/transaction_agent/scan/trans';
+    protected $gateway = 'https://116.228.47.74:7443/transaction_agent/scan/trans';//交易
+    protected $gatewayMch = 'http://116.228.47.74:18480/merchant_agent_foreign';//+接口 URL
+    protected $gatewaySepar = 'https://116.228.47.74:7443/transaction_agent/scan/separ';//分账
 
     //交易类型
     const WX_NATIVE = 'WX_NATIVE';//微信扫码
