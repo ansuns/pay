@@ -111,7 +111,7 @@ class Mch extends Chinaebi
                 continue;
             }
             if (!in_array($key, ['merchantCert', 'serverCert', 'sign', 'serverSign', 'merchantSign', 'sign_type'])) {
-                $signData[$key] = $value;
+                $signData[$key] = (string)$value;
             }
         }
 
