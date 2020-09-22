@@ -28,6 +28,11 @@ class Mch extends Chinaebi
     public function apply(array $options = [])
     {
         $this->service = "/rest/standardMerchant/inComing";
+        $micro = $options['micro'] ?? false;
+        if ($micro) {
+            $this->service = " /rest/microMerchant/inComing";
+
+        }
         $this->setReqData($options);
         return $this->getResult();
     }
