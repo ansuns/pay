@@ -30,7 +30,7 @@ class Mch extends Chinaebi
         $this->service = "/rest/standardMerchant/inComing";
         $micro = $options['micro'] ?? false;
         if ($micro) {
-            $this->service = " /rest/microMerchant/inComing";
+            $this->service = "/rest/microMerchant/inComing";
 
         }
         $this->setReqData($options);
