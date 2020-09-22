@@ -151,10 +151,14 @@ class Mch extends Chinaebi
                 if (empty($val)) {
                     continue;
                 }
-                $tmp_files[] = [
-                    'name' => $key,
-                    'contents' => fopen($val, 'r'),
-                ];
+                $ext = pathinfo($val, PATHINFO_EXTENSION);
+                if ($ext) {
+                    $tmp_files[] = [
+                        'name' => $key,
+                        'contents' => fopen($val, 'r'),
+                    ];
+                }
+
             }
 
             // 准备GuzzleHttp参数
