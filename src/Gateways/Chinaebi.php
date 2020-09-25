@@ -35,8 +35,13 @@ abstract class Chinaebi extends GatewayInterface
      * @var string
      */
     protected $gateway = 'https://116.228.47.74:7443/transaction_agent/scan/trans';//交易
-    protected $gatewayMch = 'http://116.228.47.74:18480/merchant_agent_foreign';//+接口 URL
+    protected $gatewayMch = 'http://116.228.47.74:18480/merchant_agent_foreign';//+接口 URL 进件
     protected $gatewaySepar = 'https://116.228.47.74:7443/transaction_agent/scan/separ';//分账
+
+
+    protected $gatewayProduction = 'https://pos.chinaebi.com:7443/transaction_agent/scan/trans';//交易 - 生产环境
+    protected $gatewayMchProduction = 'https://qzmerc.chinaebi.com:18480/merchant_agent_foreign';//+接口 URL - 生产环境
+    protected $gatewaySeparProduction = 'https://116.228.47.74:7443/transaction_agent/scan/separ';//分账 - 生产环境
 
     //交易类型
     const WX_NATIVE = 'WX_NATIVE';//微信扫码
@@ -51,6 +56,8 @@ abstract class Chinaebi extends GatewayInterface
     protected $merchant_private_key = '';
     protected $merchant_cert = '';
     protected $body = [];
+
+    protected static $otherConfig = [];
 
     /**
      * Wechat constructor.
@@ -72,6 +79,12 @@ abstract class Chinaebi extends GatewayInterface
 //        if (is_null($this->userConfig->get('service'))) {
 //            throw new InvalidArgumentException('Missing Config -- [service]');
 //        }
+        $env = $config['env'] ?? 'test';
+        if ($env!='test'){
+            $this->gateway=$this->gatewayProduction;
+            $this->gatewayMch=$this->gatewayMchProduction;
+            $this->gatewaySepar=$this->gatewaySeparProduction;
+        }
         $this->config = [
             'merc_id' => $this->userConfig->get('merc_id'), // 商户号
             'send_time' => date("Ymd"), // 交易发起时间
@@ -81,6 +94,8 @@ abstract class Chinaebi extends GatewayInterface
             'sign_type' => 'RSA', // 签名类型
             //'sign' => '',//签名
         ];
+
+        self::$otherConfig = $config;
     }
 
     /**

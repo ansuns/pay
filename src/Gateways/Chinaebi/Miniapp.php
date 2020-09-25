@@ -4,6 +4,7 @@
 namespace Ansuns\Pay\Gateways\Chinaebi;
 
 use Ansuns\Pay\Gateways\Chinaebi;
+use Ansuns\Pay\Pay;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
@@ -53,20 +54,8 @@ class Miniapp extends Chinaebi
             return $result;
         } else {
             //特定失败自动尝试配置APPID
-            if (isset($result['bizMsg']) && $result['bizMsg'] == '交易失败，请联系客服' && isset($result['bizCode']) && $result['bizCode'] == '2010') {
-                try {
-                    $this->service = "/weChat/bindconfig";
-                    $this->config['reqData'] = [];
-                    $this->setReqData([
-                        'mno' => $this->userConfig->get('mno', ''),
-                        'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
-                        'subAppid' => $options['appid'],//必传
-                    ]);
-                    $this->getResult();
-                } catch (\Exception $e) {
-                   // wr_log($e->getMessage());
-                }
-            }
+            $pay = new Pay(['chinaebi' => self::$otherConfig]);
+            $result = $pay->driver('chinaebi')->gateway('mch')->bind_config($options['sub_app_id']);
         }
         return $result;
     }

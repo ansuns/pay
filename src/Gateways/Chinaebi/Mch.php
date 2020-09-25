@@ -37,21 +37,21 @@ class Mch extends Chinaebi
         return $this->getResult();
     }
 
+
     /**
-     * 查询进件信息
-     * @param string $task_code
-     * @return mixed
-     * @throws Exception
-     * @throws GatewayException
+     * 微信特约商户绑定 APPID 配置
+     * @param string $appid
+     * @return array|mixed
      */
     public function bind_config(string $appid)
     {
-        $this->service = "/weChat/bindconfig";
+        $this->service = "/rest/weChatMerchantConfig/bindAppIdConfig";
         $this->setReqData([
-            'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
-            'subAppid' => $appid,//必传
+            'orgNumber' => $this->userConfig->get('org_id'),//机构代码
+            'dyMchNo' => $this->userConfig->get('merc_id'),//电银商户号
+            'subAppId' => $appid,//关联 APPID
         ]);
-        $result = $this->getResult();
+        return $this->getResult();
     }
 
     /**
@@ -148,7 +148,7 @@ class Mch extends Chinaebi
         $files = $this->body['files'] ?? [];
         unset($this->body['files']);
         $this->body['sign'] = $this->getSign($this->body);
-        $newData = [];
+        $client = new Client(['verify' => false]);
         if (!empty($files)) {
             $tmp_files = [];
             //特殊：上传文件处理
@@ -175,13 +175,15 @@ class Mch extends Chinaebi
                 ];
             }
             $newData = array_merge($tmp, $tmp_files);
+
+            $data = ['multipart' => $newData];
+        } else {
+            $data = ['json' => $this->body];
         }
 
-        $client = new Client(['verify' => false]);
-        $data = ['multipart' => $newData];
         $url = $this->gatewayMch . $this->service;
         $result = $client->request('POST', $url, $data)->getBody()->getContents();
-        
+
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
