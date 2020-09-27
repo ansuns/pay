@@ -79,11 +79,14 @@ abstract class Chinaebi extends GatewayInterface
 //        if (is_null($this->userConfig->get('service'))) {
 //            throw new InvalidArgumentException('Missing Config -- [service]');
 //        }
-        $env = $config['env'] ?? 'test';
-        if ($env!='test'){
-            $this->gateway=$this->gatewayProduction;
-            $this->gatewayMch=$this->gatewayMchProduction;
-            $this->gatewaySepar=$this->gatewaySeparProduction;
+        $env = $config['env'] ?? 'pro';
+        if ($this->userConfig->get('org_id') == '999') {
+            $env = 'test';
+        }
+        if ($env != 'test') {
+            $this->gateway = $this->gatewayProduction;
+            $this->gatewayMch = $this->gatewayMchProduction;
+            $this->gatewaySepar = $this->gatewaySeparProduction;
         }
         $this->config = [
             'merc_id' => $this->userConfig->get('merc_id'), // 商户号

@@ -163,9 +163,7 @@ abstract class Ruiyinxin extends GatewayInterface
      */
     public function refund($refundAmount, $oriReqMsgId = '', $merchantCode = '')
     {
-        $this->gateway = 'http://wxtest.ruishangtong.com/ydzf/admin/ydzf-smzf001/';
         $this->config['tranCode'] = "SMZF004"; //申请退款
-        //$this->config['reqMsgId'] =$oriReqMsgId;
         $this->setReqData([
             'oriReqMsgId' => $oriReqMsgId, 'merchantCode' => $merchantCode, 'refundAmount' => $refundAmount
         ]);
