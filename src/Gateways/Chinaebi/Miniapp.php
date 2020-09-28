@@ -55,7 +55,8 @@ class Miniapp extends Chinaebi
         } else {
             //特定失败自动尝试配置APPID
             $pay = new Pay(['chinaebi' => self::$otherConfig]);
-            $result = $pay->driver('chinaebi')->gateway('mch')->bind_config($options['sub_app_id']);
+            $sub_app_id = $options['sub_app_id'] ?? '';
+            $result = $pay->driver('chinaebi')->gateway('mch')->bind_config($sub_app_id);
         }
         return $result;
     }
