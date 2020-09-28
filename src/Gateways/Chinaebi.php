@@ -95,6 +95,7 @@ abstract class Chinaebi extends GatewayInterface
             'charset' => 'UTF-8', // 字符集
             'version' => '1.0', // 接口版本
             'sign_type' => 'RSA', // 签名类型
+            'isSeparateAcc' => 'N',//是否分账
             //'sign' => '',//签名
         ];
 
@@ -126,11 +127,17 @@ abstract class Chinaebi extends GatewayInterface
         ];
         $client = new Client(['verify' => false]);
         $data_string = json_encode($request);
-        $result = $client->request('POST', $this->gateway, ['body' => $data_string,
-            'headers' => ['Content-Type' => 'application/json',]
-        ])->getBody()->getContents();
+        if ($this->body['trancde'] == 'P11') {
+            $this->body['sign'] = $this->config['sign'];
+            // file_put_contents('./result.txt', json_encode([777, $this->body]) . PHP_EOL, FILE_APPEND);
+            $result = $client->request('POST', $this->gateway, $this->body)->getBody()->getContents();
+        } else {
+            $result = $client->request('POST', $this->gateway, ['body' => $data_string,
+                'headers' => ['Content-Type' => 'application/json']
+            ])->getBody()->getContents();
+        }
 
-        //file_put_contents('./result.txt', json_encode([777, $result]) . PHP_EOL, FILE_APPEND);
+        //
         if (!ToolsService::is_json($result)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
@@ -275,15 +282,18 @@ abstract class Chinaebi extends GatewayInterface
 
     protected function buildPayResult($data)
     {
+        if (isset($data['body']['pay_time']) && !$data['body']['pay_time']) {
+            $data['body']['pay_time'] = date("YmdHis");
+        }
         $data['openid'] = $data['body']['open_id'] ?? '';
         $data['pay_amount'] = isset($data['body']['pay_amount']) ? ToolsService::ncPriceFen2yuan($data['body']['pay_amount']) : '';
         $data['pay_time'] = strtotime($data['body']['pay_time']) ?? time();
-        $data['channel_no'] = $data['body']['channel_no']??'';
+        $data['channel_no'] = $data['body']['channel_no'] ?? '';
         //02：支付宝, 01：微信, 03: 银联
         if ($data['body']['pay_type'] == '02' || $data['body']['pay_type'] == 'AL_JSAPI' || $data['body']['pay_type'] == 'ALIPAY') {
             $data['channel_no'] = substr_replace($data['channel_no'], '', 0, 2);;
         }
-        unset($data['head'],$data['body']);
+        unset($data['head'], $data['body']);
         return $data;
     }
 
@@ -511,5 +521,46 @@ abstract class Chinaebi extends GatewayInterface
         $long = sprintf("%u", ip2long($ip));
         $ip = $long ? [$ip, $long] : ['0.0.0.0', 0];
         return $ip[$type];
+    }
+
+    /**
+     * 分账
+     * @param array $options
+     * @return mixed
+     * @throws GatewayException、
+     */
+    public function separate(array $options)
+    {
+        $reqData = [
+            'trancde' => 'P11',//交易码 String(10) Y 固定：P11
+            'mer_order_no' => $options['out_trade_no'] ?? '',// 商户订单号 String(32) Y 原交易订单号
+            'merc_id' => $this->userConfig->get('merc_id'),//商户号 String(20) Y 商户号
+            'pay_amount' => $options['pay_amount'] ?? '',// 平台分账金额 String(12) Y 单位：分
+            'bat_no' => $options['bat_no'] ?? '',// 分账流水号 String(20) Y 由请求方产生，必须唯一
+            'send_time' => date('YmdHis'),// 交易发起时间 String(14) Y 格式:yyyyMMddHHmmss
+            'org_id' => $this->userConfig->get('org_id'),//机构号 String(10) Y 机构号
+            // 分账接收列表
+            'merc_detail' => [
+                'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
+                'rec_mer_id' => $this->userConfig->get('merc_id'),// 商户号 String(20) Y
+                'pay_amt' => $options['pay_amt'] ?? '',// 分账金额 String(12) Y 单位：分
+                'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
+            ],
+        ];
+        $this->setReqData($reqData);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $pay_result = $data['body']['pay_result'] ?? 'F';
+        if ($pay_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($pay_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($pay_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
+        }
     }
 }
