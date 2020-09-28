@@ -205,4 +205,73 @@ class Mch extends Chinaebi
         }
         return $response_data;
     }
+
+    /**
+     * 在线签约
+     * @param array $options
+     * @return mixed
+     * @throws GatewayException
+     */
+    public function contract(array $options)
+    {
+        $this->service = '/rest/merchantInfo/contract';
+        $reqData = [
+            'orgNo' => $this->userConfig->get('org_id'),// 机构号 Y
+            'mchId' => $this->userConfig->get('merc_id'),// 商户编号 N
+            'merSeqNo' => $options['merSeqNo'] ?? '',// 商户请求流水号 Y 唯一,禁止重复
+            'mchName' => $options['mchName'] ?? '',// 商户名称 Y
+            'legalName' => $options['legalName'] ?? '',// 法人姓名 Y
+            'mchAddress' => $options['mchAddress'] ?? '',// 商户地址 Y
+            'phoneNo' => $options['phoneNo'] ?? '',// 联系电话 Y
+            'backUrl' => $options['backUrl'] ?? '',// 回调地址 Y 可跳转的全链接
+        ];
+
+        $this->setReqData($reqData);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $pay_result = $data['body']['pay_result'] ?? 'F';
+        if ($pay_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($pay_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($pay_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
+        }
+    }
+
+    /**
+     * 签约结果查询
+     * @param array $options
+     * @return mixed
+     * @throws GatewayException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function contractQuery(array $options)
+    {
+        $this->service = '/rest/merchantInfo/querySignStatus';
+        $reqData = [
+            'orgNo' => $this->userConfig->get('org_id'),// 机构号 Y
+            'merSeqNo' => $options['merSeqNo'] ?? '',// 原签约请求流水号 merSeqNo
+        ];
+
+        $this->setReqData($reqData);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $pay_result = $data['body']['pay_result'] ?? 'F';
+        if ($pay_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($pay_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($pay_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
+        }
+    }
 }
