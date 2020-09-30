@@ -55,6 +55,19 @@ class Mch extends Chinaebi
     }
 
     /**
+     * 微信特约商户配置查询
+     * @return array|mixed
+     */
+    public function bind_config_query()
+    {
+        $this->service = "/rest/weChatMerchantConfig/queryConfig";
+        $this->setReqData([
+            'orgNumber' => $this->userConfig->get('org_id'),//机构代码
+            'dyMchNo' => $this->userConfig->get('merc_id'),//电银商户号
+        ]);
+        return $this->getResult();
+    }
+    /**
      * 查询进件信息
      * @param string $task_code
      * @return mixed
