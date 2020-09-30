@@ -67,6 +67,7 @@ class Mch extends Chinaebi
         ]);
         return $this->getResult();
     }
+
     /**
      * 查询进件信息
      * @param string $task_code
@@ -138,7 +139,7 @@ class Mch extends Chinaebi
             throw new InvalidArgumentException('Missing Config -- [private_key]');
         }
 
-        $dataJson = json_encode($signData, JSON_UNESCAPED_UNICODE);
+        $dataJson = json_encode($signData, 320);
         $private_key = "-----BEGIN RSA PRIVATE KEY-----\n" .
             wordwrap($this->userConfig->get('private_key'), 64, "\n", true) .
             "\n-----END RSA PRIVATE KEY-----";
@@ -191,7 +192,13 @@ class Mch extends Chinaebi
 
             $data = ['multipart' => $newData];
         } else {
-            $data = ['json' => $this->body];
+            $data = [
+                //SON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320, 使用2个常量
+                'body' => json_encode($this->body, 320),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ]
+            ];
         }
 
         $url = $this->gatewayMch . $this->service;
@@ -244,16 +251,8 @@ class Mch extends Chinaebi
         if (!$this->isSuccess($data)) {
             return $this->failedReturn($data);
         }
-        $pay_result = $data['body']['pay_result'] ?? 'F';
-        if ($pay_result == 'S') {
-            $data['trade_state'] = 'SUCCESS';
-        }
-        if ($pay_result == "R") {
-            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
-        }
-        if ($pay_result == "F") {
-            $data['trade_state'] = 'FAIL';//失败
-        }
+        $data['trade_state'] = 'SUCCESS';
+        return $data;
     }
 
     /**
@@ -276,15 +275,7 @@ class Mch extends Chinaebi
         if (!$this->isSuccess($data)) {
             return $this->failedReturn($data);
         }
-        $pay_result = $data['body']['pay_result'] ?? 'F';
-        if ($pay_result == 'S') {
-            $data['trade_state'] = 'SUCCESS';
-        }
-        if ($pay_result == "R") {
-            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
-        }
-        if ($pay_result == "F") {
-            $data['trade_state'] = 'FAIL';//失败
-        }
+        $data['trade_state'] = 'SUCCESS';
+        return $data;
     }
 }
