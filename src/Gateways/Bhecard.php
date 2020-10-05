@@ -34,6 +34,8 @@ abstract class Bhecard extends GatewayInterface
      * @var string
      */
     protected $gateway = "https://test_nucc.bhecard.com:9088/api_gateway.do";
+    //protected $gateway = "https://newpay.bhecard.com/api_gateway.do";
+    protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
 
 
     /**
@@ -398,5 +400,19 @@ abstract class Bhecard extends GatewayInterface
         unset($this->config['notify_url']);
         unset($this->config['trade_type']);
         return true;
+    }
+
+    /**
+     * 身份证,银行卡信息如需加密时使用
+     * @param $data
+     * @return string
+     */
+    public function desEncrypt($data)
+    {
+        if (is_null($this->userConfig->get('des_encode_key'))) {
+            throw new InvalidArgumentException('Missing Config -- [des_encode_key]');
+        }
+        $out = openssl_encrypt($data, 'DES-ECB', $this->userConfig->get('des_encode_key'), OPENSSL_RAW_DATA);
+        return bin2hex($out);
     }
 }

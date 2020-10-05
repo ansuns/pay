@@ -65,4 +65,13 @@ class Miniapp extends Bhecard
         }
         return $result;
     }
+
+    public function newPay(array $options = [])
+    {
+        $this->service = "trade.acc.dsfpay.newPay";
+        //$this->service = "trade.acc.dsfpay.newPay";
+        $this->setReqData($options);
+        $result = $this->getResult();
+        return $result;
+    }
 }
