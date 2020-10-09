@@ -41,7 +41,7 @@ abstract class Chinaebi extends GatewayInterface
 
     protected $gatewayProduction = 'https://pos.chinaebi.com:7443/transaction_agent/scan/trans';//交易 - 生产环境
     protected $gatewayMchProduction = 'https://qzmerc.chinaebi.com:18480/merchant_agent_foreign';//+接口 URL - 生产环境
-    protected $gatewaySeparProduction = 'https://116.228.47.74:7443/transaction_agent/scan/separ';//分账 - 生产环境
+    protected $gatewaySeparProduction = 'https://pos.chinaebi.com:7443/transaction_agent/scan/separ';//分账 - 生产环境
 
     //交易类型
     const WX_NATIVE = 'WX_NATIVE';//微信扫码
@@ -129,8 +129,13 @@ abstract class Chinaebi extends GatewayInterface
         $data_string = json_encode($request);
         if ($this->body['trancde'] == 'P11') {
             $this->body['sign'] = $this->config['sign'];
-            // file_put_contents('./result.txt', json_encode([777, $this->body]) . PHP_EOL, FILE_APPEND);
-            $result = $client->request('POST', $this->gateway, $this->body)->getBody()->getContents();
+            $data = [
+                'body' => json_encode($this->body, 320),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ]
+            ];
+            $result = $client->request('POST', $this->gateway, $data)->getBody()->getContents();
         } else {
             $result = $client->request('POST', $this->gateway, ['body' => $data_string,
                 'headers' => ['Content-Type' => 'application/json']
@@ -547,6 +552,7 @@ abstract class Chinaebi extends GatewayInterface
                 'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
             ],
         ];
+        $this->gateway = $this->gatewaySepar;
         $this->setReqData($reqData);
         $data = $this->getResult();
         if (!$this->isSuccess($data)) {
