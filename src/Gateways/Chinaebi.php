@@ -548,7 +548,7 @@ abstract class Chinaebi extends GatewayInterface
             'merc_detail' => [
                 [
                     'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
-                    'rec_mer_id' => $this->userConfig->get('rec_mer_id'),// 商户号 String(20) Y
+                    'rec_mer_id' => $options['rec_mer_id'] ?? '',// 商户号 String(20) Y
                     'pay_amt' => $options['pay_amt'] ?? '',// 分账金额 String(12) Y 单位：分
                     'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
                 ]
