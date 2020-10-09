@@ -546,10 +546,13 @@ abstract class Chinaebi extends GatewayInterface
             'org_id' => $this->userConfig->get('org_id'),//机构号 String(10) Y 机构号
             // 分账接收列表
             'merc_detail' => [
-                'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
-                'rec_mer_id' => $this->userConfig->get('merc_id'),// 商户号 String(20) Y
-                'pay_amt' => $options['pay_amt'] ?? '',// 分账金额 String(12) Y 单位：分
-                'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
+                [
+                    'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
+                    'rec_mer_id' => $this->userConfig->get('merc_id'),// 商户号 String(20) Y
+                    'pay_amt' => $options['pay_amt'] ?? '',// 分账金额 String(12) Y 单位：分
+                    'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
+                ]
+
             ],
         ];
         $this->gateway = $this->gatewaySepar;
