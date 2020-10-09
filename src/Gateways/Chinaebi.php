@@ -548,14 +548,14 @@ abstract class Chinaebi extends GatewayInterface
             'merc_detail' => [
                 [
                     'type' => 'MERCHANT_ID',// 分账类型 String(32) Y 固定：
-                    'rec_mer_id' => $this->userConfig->get('merc_id'),// 商户号 String(20) Y
+                    'rec_mer_id' => $this->userConfig->get('rec_mer_id'),// 商户号 String(20) Y
                     'pay_amt' => $options['pay_amt'] ?? '',// 分账金额 String(12) Y 单位：分
                     'desc' => $options['desc'] ?? '',// 分账描述 String(32) Y
                 ]
 
             ],
         ];
-        $this->gateway = $this->gatewaySepar;
+        //$this->gateway = $this->gatewaySepar;
         $this->setReqData($reqData);
         $data = $this->getResult();
         if (!$this->isSuccess($data)) {
@@ -589,7 +589,7 @@ abstract class Chinaebi extends GatewayInterface
             'bat_no' => $options['bat_no'] ?? '',// 分账流水号 String(20) Y 由请求方产生，必须唯一
             'org_id' => $this->userConfig->get('org_id'),//机构号 String(10) Y 机构号
         ];
-        $this->gateway = $this->gatewaySepar;
+        //$this->gateway = $this->gatewaySepar;
         $this->setReqData($reqData);
         $data = $this->getResult();
         if (!$this->isSuccess($data)) {
