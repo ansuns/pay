@@ -573,4 +573,38 @@ abstract class Chinaebi extends GatewayInterface
         }
         return $data;
     }
+
+    /**
+     * 分账查询
+     * @param array $options
+     * @return array|mixed
+     * @throws GatewayException
+     */
+    public function separateFind(array $options)
+    {
+        $reqData = [
+            'trancde' => 'PF3',//交易码 String(10) Y 固定：PF3
+            'mer_order_no' => $options['out_trade_no'] ?? '',// 商户订单号 String(32) Y 原交易订单号
+            'merc_id' => $this->userConfig->get('merc_id'),//商户号 String(20) Y 商户号
+            'bat_no' => $options['bat_no'] ?? '',// 分账流水号 String(20) Y 由请求方产生，必须唯一
+            'org_id' => $this->userConfig->get('org_id'),//机构号 String(10) Y 机构号
+        ];
+        $this->gateway = $this->gatewaySepar;
+        $this->setReqData($reqData);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $pay_result = $data['body']['pay_result'] ?? 'F';
+        if ($pay_result == 'S') {
+            $data['trade_state'] = 'SUCCESS';
+        }
+        if ($pay_result == "R") {
+            $data['trade_state'] = 'WAITING_PAYMENT';//等待支付
+        }
+        if ($pay_result == "F") {
+            $data['trade_state'] = 'FAIL';//失败
+        }
+        return $data;
+    }
 }
