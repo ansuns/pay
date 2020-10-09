@@ -95,7 +95,7 @@ abstract class Chinaebi extends GatewayInterface
             'charset' => 'UTF-8', // 字符集
             'version' => '1.0', // 接口版本
             'sign_type' => 'RSA', // 签名类型
-            'isSeparateAcc' => 'N',//是否分账
+            'isSeparateAcc' => $this->userConfig->get('isSeparateAcc', 'N'),//是否分账
             //'sign' => '',//签名
         ];
 
@@ -562,5 +562,6 @@ abstract class Chinaebi extends GatewayInterface
         if ($pay_result == "F") {
             $data['trade_state'] = 'FAIL';//失败
         }
+        return $data;
     }
 }
