@@ -81,12 +81,22 @@ abstract class Bhecard extends GatewayInterface
         $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         $service_return_name = str_replace(".", "_", $this->service) . '_response';
         $result = json_decode($return_data, true);
+
         $trade_response = json_encode($result[$service_return_name], 256);
+
+        // 失败
+        if (isset($result['null_response'])) {
+            $service_return_name = 'null_response';
+            $trade_response = json_encode($result[$service_return_name], 256);
+        }
 
         if (!ToolsService::is_json($trade_response)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $result);
         }
+
         $result = json_decode($trade_response, true);
+        //file_put_contents('./result.txt', json_encode([$result, "bhecard", http_build_query($this->config)]) . PHP_EOL, FILE_APPEND);
+
 
 //        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
 //            throw new GatewayException('验证签名失败', 20000, $result);
