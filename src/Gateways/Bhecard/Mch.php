@@ -31,7 +31,8 @@ class Mch extends Bhecard
             // 小微商户
             $this->service = "small.merchant.add";
         }
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -43,7 +44,8 @@ class Mch extends Bhecard
     public function confirm(array $options = [])
     {
         $this->service = "merchant.add.confirm";
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -67,13 +69,15 @@ class Mch extends Bhecard
                 $options[$key] = $this->desEncrypt($val);
             }
         }
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     public function feeSet(array $options = [])
     {
         $this->service = "merchant.add.fee";
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -85,7 +89,8 @@ class Mch extends Bhecard
     public function feeStop(array $options = [])
     {
         $this->service = "merchant.stop.fee";
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -97,7 +102,8 @@ class Mch extends Bhecard
     public function openWay(array $options = [])
     {
         $this->service = "merchant.pay.open";
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -109,7 +115,8 @@ class Mch extends Bhecard
     public function autotransferControl(array $options = [])
     {
         $this->service = "merchant.autotransfer.control";
-        return $this->getResult($options);
+        $this->setReqData($options);
+        return $this->getResult();
     }
 
     /**
@@ -127,6 +134,7 @@ class Mch extends Bhecard
             'subAppid' => $appid,//必传
         ]);
         $result = $this->getResult();
+        return $result;
     }
 
     /**
