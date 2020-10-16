@@ -33,8 +33,8 @@ abstract class Bhecard extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway = "https://test_nucc.bhecard.com:9088/api_gateway.do";
-    //protected $gateway = "https://newpay.bhecard.com/api_gateway.do";
+    protected $gateway_test = "https://test_nucc.bhecard.com:9088/api_gateway.do";
+    protected $gateway = "https://newpay.bhecard.com/api_gateway.do";
     protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
 
 
@@ -45,6 +45,10 @@ abstract class Bhecard extends GatewayInterface
      */
     public function __construct(array $config)
     {
+        $env = $config['env'] ?? 'pro';
+        if ($env != 'pro') {
+            $this->gateway = $this->gateway_test;
+        }
         $this->userConfig = new Config($config);
         $this->config = [
             'service' => '',
@@ -68,6 +72,16 @@ abstract class Bhecard extends GatewayInterface
     }
 
     /**
+     * 图片进行base64编码
+     * @param $image
+     * @return string
+     */
+    protected function imgToBase64($image)
+    {
+        return base64_encode(file_get_contents($image));
+    }
+
+    /**
      * 获取验证访问数据
      * @return array
      * @throws GatewayException
@@ -75,33 +89,38 @@ abstract class Bhecard extends GatewayInterface
     protected function getResult()
     {
         $this->config['service'] = $this->service;
+
+        if (isset($this->config['biz_content']['image_str'])) {
+            //图片特殊编码后上传
+            $this->config['biz_content']['image_str'] = $this->imgToBase64($this->config['biz_content']['image_str']);
+        }
         $this->config['sign'] = $this->getSign($this->config['biz_content']);
-        $this->config['biz_content'] = json_encode($this->config['biz_content'], JSON_UNESCAPED_UNICODE);
+        $this->config['biz_content'] = json_encode($this->config['biz_content'], 320);
         $client = new Client(['verify' => false]);
         $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         $service_return_name = str_replace(".", "_", $this->service) . '_response';
-        $result = json_decode($return_data, true);
+        $resultOrigin = json_decode($return_data, true);
 
-        $trade_response = json_encode($result[$service_return_name], 256);
+        $trade_response = json_encode($resultOrigin[$service_return_name], 320);
 
         // 失败
-        if (isset($result['null_response'])) {
+        if (isset($resultOrigin['null_response'])) {
             $service_return_name = 'null_response';
-            $trade_response = json_encode($result[$service_return_name], 256);
+            $trade_response = json_encode($resultOrigin[$service_return_name], 320);
         }
 
         if (!ToolsService::is_json($trade_response)) {
-            throw new GatewayException('返回结果不是有效json格式', 20000, $result);
+            throw new GatewayException('返回结果不是有效json格式', 20000, $resultOrigin);
+        }
+        // 业务详细数据
+        $result = json_decode($trade_response, true);
+
+        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
+            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
         }
 
-        $result = json_decode($trade_response, true);
-        //file_put_contents('./result.txt', json_encode([$result, "bhecard", http_build_query($this->config)]) . PHP_EOL, FILE_APPEND);
-
-
-//        if (!empty($result['sign']) && !$this->verify($this->getSignContent($result), $result['sign'], $this->userConfig->get('sxf_pub_key'))) {
-//            throw new GatewayException('验证签名失败', 20000, $result);
-//        }
         $response_data = $result;
+        $response_data['sign'] = $resultOrigin['sign'] ?? '';
         $response_data['rawdata'] = $return_data;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
@@ -244,24 +263,21 @@ abstract class Bhecard extends GatewayInterface
         return $return;
     }
 
-    /**RSA验签
+    /**
+     * RSA验签
      * @param array $data 待签名数据
      * @param string|null $sign 需要验签的签名
-     * @param bool|string $pub_key
+     * @param bool|string $public_key
      * @return bool 验签是否通过 bool值
      */
-    public function verify($data, $sign = null, $pub_key = false)
+    public function verify($data, $sign = null, $public_key = false)
     {
-        $str = chunk_split($pub_key, 64, "\n");
+        $str = chunk_split($public_key, 64, "\n");
         $public_key = "-----BEGIN PUBLIC KEY-----\n$str-----END PUBLIC KEY-----\n";
-        //转换为openssl格式密钥
-        $res = openssl_get_publickey($public_key);
-        //调用openssl内置方法验签，返回bool值
-        $result = (bool)openssl_verify($data, base64_decode($sign), $public_key);
-        //释放资源
-        openssl_free_key($res);
-        //返回资源是否成功
-        return $result;
+        $pu_key = openssl_pkey_get_public($public_key);
+        $verify = openssl_verify($data, base64_decode($sign), $pu_key, OPENSSL_ALGO_SHA1);
+        openssl_free_key($pu_key);
+        return $verify == 1;
     }
 
     /**
@@ -367,8 +383,8 @@ abstract class Bhecard extends GatewayInterface
             throw new InvalidArgumentException('Missing Config -- [sign_key]');
         }
         $data = $this->getSignContent($data);
-        $cooprator_pri_key = $this->userConfig->get('sign_key');
-        $str = chunk_split($cooprator_pri_key, 64, "\n");
+        $sign_key = $this->userConfig->get('sign_key');
+        $str = chunk_split($sign_key, 64, "\n");
         $private_key = "-----BEGIN RSA PRIVATE KEY-----\n$str-----END RSA PRIVATE KEY-----\n";
         $res = openssl_get_privatekey($private_key);
         openssl_sign($data, $sign, $res);
@@ -383,7 +399,7 @@ abstract class Bhecard extends GatewayInterface
      */
     private function getSignContent($sign_data)
     {
-        return json_encode($sign_data, JSON_UNESCAPED_UNICODE);
+        return json_encode($sign_data, 320);
     }
 
     /**

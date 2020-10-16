@@ -73,6 +73,12 @@ class Mch extends Bhecard
         return $this->getResult();
     }
 
+    /**
+     * 费率添加
+     * @param array $options
+     * @return array
+     * @throws GatewayException
+     */
     public function feeSet(array $options = [])
     {
         $this->service = "merchant.add.fee";
@@ -81,7 +87,7 @@ class Mch extends Bhecard
     }
 
     /**
-     * 费率添加
+     * 费率停用
      * @param array $options
      * @return array|mixed
      * @throws GatewayException
