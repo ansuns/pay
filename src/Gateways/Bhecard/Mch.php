@@ -188,4 +188,17 @@ class Mch extends Bhecard
     {
         return '';
     }
+
+    /**
+     * （分账接口）注册分账账户
+     * @param array $options
+     * @return array
+     * @throws GatewayException
+     */
+    public function createPageInfo(array $options = [])
+    {
+        $this->service = "easypay.user.mgnt.createPageInfo";
+        $this->setReqData($options);
+        return $this->getResult();
+    }
 }
