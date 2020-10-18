@@ -19,12 +19,15 @@ class Miniapp extends SandpayOnline
      */
     protected function getTradeType()
     {
-        return 'trade.create';
+        return 'sandpay.trade.pay';
     }
 
     public function apply(array $options = [])
     {
-        //$this->config['method'] = $this->getTradeType();
+        $this->service = 'order/pay';
+        $this->config['head']['method'] = $this->getTradeType();
+        $this->config['head']['productId'] = '00002020';
+
         $this->setReqData($options);
         $result = $this->getResult();
         return $result;

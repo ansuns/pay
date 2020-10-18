@@ -25,7 +25,7 @@ abstract class SandpayOnline extends GatewayInterface
     /**
      * @var string
      */
-    protected $service;
+    protected $service, $productId;
     /**
      * @var Config
      */
@@ -51,8 +51,9 @@ abstract class SandpayOnline extends GatewayInterface
     ];
 
     protected $gatewayWechatArr = [
-        'test' => 'http://61.129.71.103:8003/gateway/order/pay',// 微信公众号/小程序 - 测试
-        'pro' => 'https://cashier.sandpay.com.cn/gateway/api/order/pay',// 微信公众号/小程序 - 生产
+        'test' => 'http://61.129.71.103:8003/gateway/api/',// 微信公众号/小程序 - 测试
+        'pro' => 'https://cashier.sandpay.com.cn/gateway/api/',// 微信公众号/小程序 - 生产
+        'aaa' => 'https://cashier.sandpay.com.cn/gateway/api'
     ];
 
     /**
@@ -92,8 +93,8 @@ abstract class SandpayOnline extends GatewayInterface
         $this->config = [
             'head' => [
                 'version' => '1.0', // 接口版本
-                'method' => 'sandpay.trade.precreate', // 接口名称
-                'productId' => '00002020',//产品编码
+                'method' => '', // 接口名称
+                'productId' => '',//产品编码
                 'accessType' => '1', // 接入类型：1-普通商户接入，2-平台商户接入，3-核心企业商户接入
                 'mid' => $this->userConfig->get('mid'), // 收款方商户号
                 //'plMid' => '',//  平台ID 接入类型为2时必填，在担保支付模式下填写核心商户号
@@ -103,7 +104,7 @@ abstract class SandpayOnline extends GatewayInterface
             'body' => []
         ];
 
-        if (!empty($this->userConfig->get('mid'))) {
+        if (!$this->userConfig->get('mid')) {
             $this->config['head']['plMid'] = $this->userConfig->get('plMid');
         }
         $this->setPrikey();
@@ -228,7 +229,7 @@ abstract class SandpayOnline extends GatewayInterface
         );
 
         $client = new Client(['verify' => false]);
-        $result = $client->request('POST', $this->gateway, ['form_params' => $post])->getBody()->getContents();
+        $result = $client->request('POST', $this->gateway . $this->service, ['form_params' => $post])->getBody()->getContents();
 
         $result = $this->parse_result($result);
         $resultData = $result['data'] ?? "";
@@ -237,7 +238,7 @@ abstract class SandpayOnline extends GatewayInterface
             throw new GatewayException('返回结果不是有效json格式', 20000, $resultData);
         }
         //$result = json_decode($result, true);
-        file_put_contents('./result.txt', json_encode([1111, $result]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode([$this->config, $result]) . PHP_EOL, FILE_APPEND);
         if (!empty($result['sign']) && !$this->verify($resultData, $result['sign'], $this->pubKey)) {
             throw new GatewayException('验证签名失败', 20000, $result);
         }
@@ -258,7 +259,7 @@ abstract class SandpayOnline extends GatewayInterface
         $response_data['sub_code'] = $response_data['sub_code'] ?? 'SUCCESS';
         $response_data['sub_msg'] = $response_data['sub_msg'] ?? '交易成功';
 
-        file_put_contents('./result.txt', json_encode([22222, $head, $body]) . PHP_EOL, FILE_APPEND);
+        //file_put_contents('./result.txt', json_encode([22222, $head, $body]) . PHP_EOL, FILE_APPEND);
         if ($code !== '000000') {
             $response_data['sub_code'] = $head['sub_code'] ?? 'ERROR';
             $response_data['sub_msg'] = $head['respMsg'] ?? '失败';
