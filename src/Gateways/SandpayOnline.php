@@ -37,23 +37,18 @@ abstract class SandpayOnline extends GatewayInterface
      * 交易生产环境地址
      * @var string
      */
-    protected $gateway = 'https://hmpay.sandpay.com.cn/gateway/api';
+    protected $gateway = 'https://cashier.sandpay.com.cn/gateway/api/';
 
-    protected $gatewayArr = [
-        'dev' => 'http://star.sandgate.cn/gateway/api',// 交易测试(开发)地址
-        'test' => 'https://hmpay.sandpay.com.cn/gateway_t/api',// 交易预发布环境地址
-        'pro' => 'https://hmpay.sandpay.com.cn/gateway/api',// 交易生产环境地址
-    ];
+    protected $gatewaySepar = 'https://cashier.sandpay.com.cn/multipart/';//分账 - 生产环境
 
     protected $gatewayAgentArr = [
         'test' => 'http://star.sandgate.cn/agent-api/api',// 商户报备测试地址
         'pro' => 'https://hmpay.sandpay.com.cn/agent-api/api',// 商户报备生产地址
     ];
 
-    protected $gatewayWechatArr = [
+    protected $gatewayArr = [
         'test' => 'http://61.129.71.103:8003/gateway/api/',// 微信公众号/小程序 - 测试
         'pro' => 'https://cashier.sandpay.com.cn/gateway/api/',// 微信公众号/小程序 - 生产
-        'aaa' => 'https://cashier.sandpay.com.cn/gateway/api'
     ];
 
     /**
@@ -87,7 +82,7 @@ abstract class SandpayOnline extends GatewayInterface
         $this->userConfig = new Config($config);
 
         $env = $config['env'] ?? 'pro';
-        $this->gateway = $this->gatewayWechatArr[$env];
+        $this->gateway = $this->gatewayArr[$env];
         $this->gatewayAgent = $this->gatewayAgentArr[$env];
 
         $this->config = [
@@ -107,6 +102,13 @@ abstract class SandpayOnline extends GatewayInterface
         if (!$this->userConfig->get('mid')) {
             $this->config['head']['plMid'] = $this->userConfig->get('plMid');
         }
+
+        //分账
+        if ($this->userConfig->get('separ') == 'true') {
+            //分账信息域
+            $this->config['body'] += ['accsplitInfo' => ['accsplitMode' => 3]];
+        }
+
         $this->setPrikey();
         $this->setPubkey();
     }
@@ -612,5 +614,23 @@ abstract class SandpayOnline extends GatewayInterface
         unset($this->config['notify_url']);
         unset($this->config['trade_type']);
         return true;
+    }
+
+    /**
+     * 分账申请接口
+     * @param array $options
+     * @return array
+     * @throws GatewayException
+     */
+    public function spearCreate(array $options)
+    {
+        $this->service = 'create';
+        $this->gateway = $this->gatewaySepar;
+        $this->config['head']['method'] = 'sandpay.trade.precreate';
+        $this->config['head']['productId'] = '00002000';
+
+        $this->setReqData($options);
+        $result = $this->getResult();
+        return $result;
     }
 }
