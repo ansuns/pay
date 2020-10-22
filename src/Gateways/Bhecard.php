@@ -125,7 +125,7 @@ abstract class Bhecard extends GatewayInterface
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        if ((!isset($result['code']) || $result['code'] !== '00') || ($result['code'] == '00' && $result['trade_status'] != 'SUCCESS')) {
+        if ((!isset($result['code']) || $result['code'] !== '00') || ($result['code'] == '00' && $result['trade_status'] != 'BUSINESS_OK')) {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
             $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
