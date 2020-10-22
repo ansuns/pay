@@ -141,13 +141,17 @@ abstract class Bhecard extends GatewayInterface
      */
     public function refund($options = [])
     {
-        $this->service = "/qr/refund";
-        $this->setReqData([
-            'ordNo' => $options['out_refund_no'],
-            'origOrderNo' => $options['out_trade_no'],
-            'amt' => ToolsService::ncPriceFen2yuan($options['refund_fee']),
-        ]);
+        $this->service = "easypay.merchant.refund";
+        $reqData = [
+            'subject' => $options['subject'] ?? '',//商户描述
+            'merchant_id' => $options['merchant_id'] ?? '',
+            'out_trade_no' => $options['out_trade_no'] ?? '',//退款订单编号
+            'origin_trade_no' => $options['origin_trade_no'] ?? '',//原支付订单编号
+            'refund_amount' => $options['refund_amount'] ?? '',//订单的交易退款金额，单位为分
+        ];
+        $this->setReqData($reqData);
         $data = $this->getResult();
+        return $data;
         if ($this->isSuccess($data)) {
             $return = [
                 'return_code' => $data['return_code'], //通信结果
@@ -223,15 +227,19 @@ abstract class Bhecard extends GatewayInterface
      * @return array
      * @throws GatewayException
      */
-    public function find($out_trade_no = '')
+    public function find($out_trade_no)
     {
-        $this->service = "/qr/query";
-        $this->setReqData(['ordNo' => $out_trade_no]);
+        $this->service = "easypay.merchant.query";
+        $opitions = [
+            'merchant_id' => $this->userConfig->get('merchant_id'),
+            'out_trade_no' => $out_trade_no,
+        ];
+        $this->setReqData($opitions);
         $data = $this->getResult();
         if ($this->isSuccess($data)) {
             return $this->buildPayResult($data);
         }
-        $trade_state = $data['tranSts'] ?? 'FAIL';
+        $trade_state = $data['trade_status'] ?? 'FAIL';
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
         return $data;
     }
