@@ -306,7 +306,7 @@ abstract class Bhecard extends GatewayInterface
         if (!is_array($result)) {
             return false;
         }
-        return isset($result['return_code']) && ($result['return_code'] === 'SUCCESS') && isset($result['result_code']) && ($result['result_code'] === 'SUCCESS');
+        return isset($result['code']) && ($result['code'] === '00');
     }
 
     /**

@@ -32,36 +32,13 @@ class Miniapp extends Bhecard
     public function apply(array $options = [])
     {
         $this->service = "easypay.js.pay.push";
-        //$this->service = "trade.acc.dsfpay.newPay";
         $this->setReqData($options);
         $result = $this->getResult();
-        return $result;
+        $result['success_data'] = "";
         if ($this->isSuccess($result)) {
-            $pay_request = [
-                'appId' => $result['payAppId'],
-                'timeStamp' => $result['payTimeStamp'],
-                'nonceStr' => $result['paynonceStr'],
-                'signType' => $result['paySignType'],
-                'package' => $result['payPackage'],
-                'paySign' => $result['paySign'],
-            ];
-            return $pay_request;
-        } else {
-            //特定失败自动尝试配置APPID
-            if (isset($result['bizMsg']) && $result['bizMsg'] == '交易失败，请联系客服' && isset($result['bizCode']) && $result['bizCode'] == '2010') {
-                try {
-                    $this->service = "/weChat/bindconfig";
-                    $this->config['reqData'] = [];
-                    $this->setReqData([
-                        'mno' => $this->userConfig->get('mno', ''),
-                        'subMchId' => $this->userConfig->get('sub_mch_id'),//必传
-                        'subAppid' => $options['appid'],//必传
-                    ]);
-                    $this->getResult();
-                } catch (\Exception $e) {
-                    wr_log($e->getMessage());
-                }
-            }
+            $result['success_data'] = json_decode($result['pay_info'], true);;
+            $result['success_data'] = isset($result['success_data']['alipayTradeNo']) ? $result['success_data']['alipayTradeNo'] : $result['success_data'];
+            return $result;
         }
         return $result;
     }
