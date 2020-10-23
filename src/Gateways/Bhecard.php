@@ -151,25 +151,22 @@ abstract class Bhecard extends GatewayInterface
         ];
         $this->setReqData($reqData);
         $data = $this->getResult();
-        return $data;
+        //trade_type:"CONSUME":支付;"REFUND":退款;"DEPOSIT":充值
+        $trade_state = $data['trade_status'] ?? 'FAIL';
         if ($this->isSuccess($data)) {
-            $return = [
-                'return_code' => $data['return_code'], //通信结果
-                'return_msg' => $data['return_msg'],
-                'result_code' => $data['result_code'],
-                'appid' => isset($data['appId']) ? $data['appId'] : '',
-                'mch_id' => '',
-                'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
-                'sign' => isset($data['sign']) ? $data['sign'] : '',
-                'out_refund_no' => $data['ordNo'],
-                'out_trade_no' => $data['origOrderNo'],
-                'refund_id' => '',
-                'transaction_id' => '',
-                'refund_fee' => ToolsService::ncPriceYuan2fen($data['refundAmount']),  //元转分
-                'raw_data' => $data
-            ];
-            return $return;
+            switch ($trade_state) {
+                case 'INIT':
+                case 'UNKNOWN':
+                    $trade_state = 'USER_PAYING';//支付中
+                    break;
+                case 'SUCCESS':
+                case 'BUSINESS_OK':
+                    $trade_state = 'SUCCESS';//支付成功
+                    break;
+            }
         }
+
+        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
         return $data;
     }
 
