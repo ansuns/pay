@@ -153,6 +153,7 @@ abstract class Bhecard extends GatewayInterface
         $data = $this->getResult();
         //trade_type:"CONSUME":支付;"REFUND":退款;"DEPOSIT":充值
         $trade_state = $data['trade_status'] ?? 'FAIL';
+
         if ($this->isSuccess($data)) {
             switch ($trade_state) {
                 case 'INIT':
@@ -233,12 +234,23 @@ abstract class Bhecard extends GatewayInterface
         ];
         $this->setReqData($opitions);
         $data = $this->getResult();
-        if ($this->isSuccess($data)) {
-            return $this->buildPayResult($data);
-        }
         $trade_state = $data['trade_status'] ?? 'FAIL';
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
-        return $data;
+        if ($this->isSuccess($data)) {
+            switch ($trade_state) {
+                case 'INIT':
+                case 'UNKNOWN':
+                    $trade_state = 'USER_PAYING';//支付中
+                    break;
+                case 'SUCCESS':
+                case 'BUSINESS_OK':
+                    $trade_state = 'SUCCESS';//支付成功
+                    break;
+            }
+        }
+
+        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
+        return $this->buildPayResult($data);
     }
 
     protected function buildPayResult($data)
@@ -247,22 +259,22 @@ abstract class Bhecard extends GatewayInterface
             'return_code' => $data['return_code'], //通信结果
             'return_msg' => $data['return_msg'],
             'result_code' => $data['result_code'],
-            'appid' => isset($data['appId']) ? $data['appId'] : '',
+            'appid' => $data['appid'] ?? '',
             'mch_id' => '',
             'device_info' => '',
-            'nonce_str' => isset($data['nonceStr']) ? $data['nonceStr'] : '',
+            'nonce_str' => $data['nonce_str'] ?? '',
             'sign' => isset($data['sign']) ? $data['sign'] : '',
-            'openid' => isset($data['buyerId']) ? $data['buyerId'] : '',
+            'openid' => $data['openid'] ?? '',
             'is_subscribe' => '',
-            'trade_type' => isset($data['payType']) ? $data['payType'] : '',
+            'trade_type' => $data['trade_type'] ?? '',
             'bank_type' => '',
-            'total_fee' => ToolsService::ncPriceYuan2fen(isset($data['oriTranAmt']) ? $data['oriTranAmt'] : $data['buyerPayAmount']),  //分
-            'transaction_id' => isset($data['transactionId']) ? $data['transactionId'] : '',
-            'out_trade_no' => isset($data['ordNo']) ? $data['ordNo'] : '',
+            'total_fee' => $data['amount'] ?? 0,
+            'transaction_id' => $data['bank_order_no'] ?? '',
+            'out_trade_no' => $data['out_trade_no'] ?? '',
             'attach' => '',
             //'time_end'       => ToolsService::format_time($data['payTime']),
-            'time_end' => isset($data['payTime']) ? $data['payTime'] : '',
-            'trade_state' => isset($data['tranSts']) ? $data['tranSts'] : $data['result_code'],
+            'time_end' => $data['success_time'] ?? date('Y-m-s H:i:s'),
+            'trade_state' => $data['trade_state'] ?? '',
             'raw_data' => $data
         ];
         return $return;
