@@ -144,7 +144,7 @@ abstract class Bhecard extends GatewayInterface
         $this->service = "easypay.merchant.refund";
         $reqData = [
             'subject' => $options['subject'] ?? '',//商户描述
-            'merchant_id' => $this->userConfig->get('merchant_id', ''),
+            'merchant_id' => $options['merchant_id'] ?? '',
             'out_trade_no' => $options['out_trade_no'] ?? '',//退款订单编号
             'origin_trade_no' => $options['origin_trade_no'] ?? '',//原支付订单编号
             'refund_amount' => $options['refund_amount'] ?? '',//订单的交易退款金额，单位为分
