@@ -5,8 +5,10 @@ namespace Ansuns\Pay\Gateways\Bhecard;
 
 use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
-use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Gateways\Bhecard;
+use GuzzleHttp\Client;
+use GuzzleHttp\Promise;
+
 
 /**
  * 商户配置
@@ -15,6 +17,9 @@ use Ansuns\Pay\Gateways\Bhecard;
  */
 class Mch extends Bhecard
 {
+
+    protected $otherResult = [];
+    protected $files, $rates;
 
     /**
      * 发起支付
@@ -26,13 +31,97 @@ class Mch extends Bhecard
     public function apply(array $options = [])
     {
         $this->service = "merchant.add.input";
-        $micro = $this->userConfig['micro'] ?? false;
+        $micro = $this->userConfig->get('micro', false);
         if ($micro) {
             // 小微商户
             $this->service = "small.merchant.add";
         }
         $this->setReqData($options);
-        return $this->getResult();
+        $data = $this->getResult();
+        $merchant_id = $data['merchant_id'] ?? 0;
+        if ($merchant_id) {
+            $this->files = $this->userConfig->get('files');
+            $this->rates = $this->userConfig->get('rates');
+        }
+        $this->getResult2();
+        $data['otherResult'] = $this->otherResult;
+        return $data;
+    }
+
+    /**
+     * 获取验证访问数据
+     * @return array
+     * @throws GatewayException
+     */
+    protected function getResult2()
+    {
+        $client = new Client(['verify' => false]);
+        $uri = $this->gateway;
+        $files = $this->files;
+        $rates = $this->rates;
+        $micro = $this->userConfig->get('micro', false);
+        $biz_content = $this->config['biz_content'];
+
+        if (!empty($files)) {
+            $this->config['service'] = "merchant.add.photo";
+            foreach ($files as $k => $v) {
+                $this->config['biz_content'] = [];
+                $ext = pathinfo($v, PATHINFO_EXTENSION);
+                if (!$ext) {
+                    continue;
+                }
+                if ($micro) {
+                    $this->config['service'] = "small.merchant.photo";
+                    $options = [
+                        "merchant_id" => $this->userConfig->get('merchant_id'),
+                        'type' => $k,
+                        'id_no' => $biz_content['id_no'] ?? '',
+                        'image_str' => $this->imgToBase64($v)
+
+                    ];
+                } else {
+                    $options = [
+                        "merchant_id" => $this->userConfig->get('merchant_id'),
+                        'type' => $k,
+                        'image_str' => $this->imgToBase64($v)
+                    ];
+                }
+
+                $this->setReqData($options);
+                $this->config['sign'] = $this->getSign($this->config['biz_content']);
+                $this->config['biz_content'] = json_encode($this->config['biz_content'], 320);
+                $promises['files' . $k] = $client->postAsync($uri, ['form_params' => $this->config]);
+            }
+        }
+        if (!empty($rates)) {
+            $tempRate = [
+                "merchant_id" => $this->userConfig->get('merchant_id'),//商户号
+                "fee_type" => "",//费率类型
+                "fee_rate" => "",//费率,3800等于0.38%
+                "has_failed_fee" => "true",//false,不退费，true退费
+                "fee_method" => "2",//1,按单笔固定金额收取，2按交易本金比例收取
+            ];
+            foreach ($rates as $k => $v) {
+                if (!$v) {
+                    continue;
+                }
+                $tempRate['fee_type'] = $k;
+                $tempRate['fee_rate'] = 10000 * (float)$v;
+                $options = $tempRate;
+                $this->config['biz_content'] = [];
+                $this->config['service'] = "merchant.add.fee";
+                $this->setReqData($options);
+                $this->config['sign'] = $this->getSign($this->config['biz_content']);
+                $this->config['biz_content'] = json_encode($this->config['biz_content'], 320);
+                $promises['rates' . $k] = $client->postAsync($uri, ['form_params' => $this->config]);
+            }
+        }
+        $results = Promise\unwrap($promises);
+
+        foreach ($results as $item) {
+            $this->otherResult[] = $item;
+        }
+
     }
 
     /**
