@@ -119,7 +119,7 @@ class Mch extends Bhecard
         $results = Promise\unwrap($promises);
 
         foreach ($results as $item) {
-            $this->otherResult[] = $item;
+            $this->otherResult[] = $item->getBody()->getContents();;
         }
 
     }
