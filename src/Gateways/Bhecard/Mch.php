@@ -176,6 +176,54 @@ class Mch extends Bhecard
     }
 
     /**
+     * 费率添加
+     * @param array $options
+     * @return array
+     * @throws GatewayException
+     */
+    public function feeMuiltSet(array $options = [])
+    {
+        $client = new Client(['verify' => false]);
+        $tempRate = [
+            "merchant_id" => $this->userConfig->get('merchant_id'),//商户号
+            "fee_type" => "",//费率类型
+            "fee_rate" => "",//费率,3800等于0.38%
+            "has_failed_fee" => "true",//false,不退费，true退费
+            "fee_method" => "2",//1,按单笔固定金额收取，2按交易本金比例收取
+        ];
+        foreach ($options as $k => $v) {
+            if (!$v) {
+                continue;
+            }
+            $tempRate['fee_type'] = $k;
+            $tempRate['fee_rate'] = 10000 * (float)$v;
+            $options = $tempRate;
+            $this->config['biz_content'] = [];
+            $this->config['service'] = "merchant.add.fee";
+            $this->service = $this->config['service'];
+            $this->setReqData($options);
+            $this->config['sign'] = $this->getSign($this->config['biz_content']);
+            $this->config['biz_content'] = json_encode($this->config['biz_content'], 320);
+            $promises['rates_' . $k] = $client->postAsync($this->gateway, ['form_params' => $this->config]);
+        }
+        $results = Promise\unwrap($promises);
+
+        foreach ($results as $key => $item) {
+            $res = $this->doData($item->getBody()->getContents());;
+            $res['rate'] = $key;
+            $this->otherResult[] = $res;
+            if ($res['result_code'] != 'SUCCESS') {
+                $res['msg'] .= ":" . $res['rate'];
+                return $res;
+            }
+        }
+        $data = $this->otherResult[0];
+        $data['raw_data'] = $this->otherResult;
+        return $data;
+
+    }
+
+    /**
      * 费率停用
      * @param array $options
      * @return array|mixed
