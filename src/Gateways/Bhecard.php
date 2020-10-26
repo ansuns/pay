@@ -134,6 +134,43 @@ abstract class Bhecard extends GatewayInterface
         return $response_data;
     }
 
+    protected function doData($return_data){
+        $service_return_name = str_replace(".", "_", $this->service) . '_response';
+        $resultOrigin = json_decode($return_data, true);
+
+        $trade_response = json_encode($resultOrigin[$service_return_name], 320);
+
+        // 失败
+        if (isset($resultOrigin['null_response'])) {
+            $service_return_name = 'null_response';
+            $trade_response = json_encode($resultOrigin[$service_return_name], 320);
+        }
+
+        if (!ToolsService::is_json($trade_response)) {
+            throw new GatewayException('返回结果不是有效json格式', 20000, $resultOrigin);
+        }
+        // 业务详细数据
+        $result = json_decode($trade_response, true);
+
+        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
+            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
+        }
+
+        $response_data = $result;
+        $response_data['sign'] = $resultOrigin['sign'] ?? '';
+        $response_data['rawdata'] = $return_data;
+        $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
+        $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
+        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
+        $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
+        if ((!isset($result['code']) || $result['code'] !== '00') && strrpos('SUCCESS', $result['trade_status']) === false) {
+            $response_data['result_code'] = 'FAIL';
+            $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
+            $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
+        }
+        return $response_data;
+    }
+
     /**
      * 订单退款操作
      * @param array $options
