@@ -33,7 +33,7 @@ abstract class Bhecard extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway_test = "https://test_nucc.bhecard.com:9088/api_gateway.do";
+    protected $gateway_test = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
     protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
     protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
 
