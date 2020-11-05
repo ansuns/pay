@@ -30,27 +30,15 @@ class Mp extends Bhecard
      */
     public function apply(array $options = [])
     {
-        $this->service = "/precreate";
-        $data = [
-            'merchantCode' => $this->userConfig->get('merchant_no'),
-            'channel' => 'WXPAY',
-            'tradeType' => $this->getTradeType(),
-            'subject' => '微信买单',
-            'outTradeNo' => $options['out_trade_no'],
-            'totalAmount' => ToolsService::ncPriceFen2yuan($options['total_fee']),
-            'openId' => $options['openid'],
-            'notifyUrl' => str_replace('https', 'http', $options['notify_url'])
-        ];
-        $this->config = array_merge($this->config, $data);
+        $this->service = "apppayacc";
+        $options ['tradetype'] = $this->getTradeType();
+        $this->setReqData($options);
         $result = $this->getResult();
-        $payRequest = [
-            'appId' => $result['appId'],
-            'timeStamp' => $result['timeStamp'],
-            'nonceStr' => $result['nonceStr'],
-            'signType' => $result['signType'],
-            'package' => $result['payPackage'],
-            'paySign' => $result['paySign'],
-        ];
-        return $payRequest;
+
+        $result['success_data'] = "";
+        if ($this->isSuccess($result)) {
+            $result['success_data'] = ($options['opt'] == 'apPreOrder') ? (string)$result['prepayid'] : json_decode($result['prepayid'], true);;
+        }
+        return $result;
     }
 }

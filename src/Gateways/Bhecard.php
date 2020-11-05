@@ -34,7 +34,7 @@ abstract class Bhecard extends GatewayInterface
      * @var string
      */
     protected $gateway_test = "https://test_nucc.bhecard.com:9088/api_gateway.do";
-    protected $gateway = "https://newpay.bhecard.com/api_gateway.do";
+    protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/";
     protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
 
 
@@ -51,13 +51,34 @@ abstract class Bhecard extends GatewayInterface
         }
         $this->userConfig = new Config($config);
         $this->config = [
-            'service' => '',
-            'partner' => $this->userConfig->get('partner', ''),
+            'channelid' => $this->userConfig->get('channelid', ''),
             'sign' => '',
-            'sign_type' => 'RSA',
-            'charset' => 'UTF-8',
-            'biz_content' => [],
+            'merid' => $this->userConfig->get('merid', ''),
+            'termid' => $this->userConfig->get('termid', ''),
         ];
+        $this->getSignKey();
+    }
+
+    /**
+     * 更新并获取签名密钥
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    protected function getSignKey()
+    {
+        $client = new Client(['verify' => false]);
+        $config = [
+            'channelid' => $this->userConfig->get('channelid', ''),
+            'opt' => 'getSign',
+        ];
+        $config['sign'] = $this->getSign($config);
+
+        $return_data = $client->request('POST', $this->gateway . 'apppayacc', ['form_params' => $config])->getBody()->getContents();
+        $data = json_decode($return_data, true);
+        $key = '';
+        if (isset($data['resultcode']) && $data['resultcode'] == '00') {
+            $key = $data['key'];
+        }
+        $this->userConfig->set('sign_key', $key);
     }
 
     /**
@@ -67,7 +88,7 @@ abstract class Bhecard extends GatewayInterface
      */
     protected function setReqData($array)
     {
-        $this->config['biz_content'] += $array;
+        $this->config += $array;
         return $this;
     }
 
@@ -88,45 +109,27 @@ abstract class Bhecard extends GatewayInterface
      */
     protected function getResult()
     {
-        $this->config['service'] = $this->service;
-
-        if (isset($this->config['biz_content']['image_str'])) {
-            //图片特殊编码后上传
-            $this->config['biz_content']['image_str'] = $this->imgToBase64($this->config['biz_content']['image_str']);
-        }
-        $this->config['sign'] = $this->getSign($this->config['biz_content']);
-        $this->config['biz_content'] = json_encode($this->config['biz_content'], 320);
+        $this->config['sign'] = $this->getSign($this->config);
         $client = new Client(['verify' => false]);
-        $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
-        $service_return_name = str_replace(".", "_", $this->service) . '_response';
-        $resultOrigin = json_decode($return_data, true);
+        $return_data = $client->request('POST', $this->gateway . $this->service, ['form_params' => $this->config])->getBody()->getContents();
 
-        $trade_response = json_encode($resultOrigin[$service_return_name], 320);
-
-        // 失败
-        if (isset($resultOrigin['null_response'])) {
-            $service_return_name = 'null_response';
-            $trade_response = json_encode($resultOrigin[$service_return_name], 320);
+        if (!ToolsService::is_json($return_data)) {
+            throw new GatewayException('返回结果不是有效json格式', 20000, $return_data);
         }
+        $return_data = json_decode($return_data, true);
 
-        if (!ToolsService::is_json($trade_response)) {
-            throw new GatewayException('返回结果不是有效json格式', 20000, $resultOrigin);
-        }
-        // 业务详细数据
-        $result = json_decode($trade_response, true);
+//        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
+//            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
+//        }
 
-        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
-            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
-        }
-
-        $response_data = $result;
+        $response_data = $return_data;
         $response_data['sign'] = $resultOrigin['sign'] ?? '';
         $response_data['rawdata'] = $return_data;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
         $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
-        if ((!isset($result['code']) || $result['code'] !== '00') && strrpos('SUCCESS', $result['trade_status']) === false) {
+        if ((!isset($response_data['resultcode']) || $response_data['resultcode'] !== '00')) {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
             $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
@@ -134,7 +137,8 @@ abstract class Bhecard extends GatewayInterface
         return $response_data;
     }
 
-    protected function doData($return_data){
+    protected function doData($return_data)
+    {
         $service_return_name = str_replace(".", "_", $this->service) . '_response';
         $resultOrigin = json_decode($return_data, true);
 
@@ -163,7 +167,7 @@ abstract class Bhecard extends GatewayInterface
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
         $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
-        if ((!isset($result['code']) || $result['code'] !== '00') && strrpos('SUCCESS', $result['trade_status']) === false) {
+        if (isset($response_data['resultcode']) && $response_data['resultcode'] == '00') {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
             $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
@@ -361,7 +365,7 @@ abstract class Bhecard extends GatewayInterface
         if (!is_array($result)) {
             return false;
         }
-        return isset($result['code']) && ($result['code'] === '00');
+        return isset($result['resultcode']) && ($result['resultcode'] === '00');
     }
 
     /**
@@ -416,7 +420,7 @@ abstract class Bhecard extends GatewayInterface
                 //'time_end'       => ToolsService::format_time($data['payTime']),
                 'time_end' => $data['payTime'],
                 'trade_state' => ($data['bizMsg'] == '交易成功') ? 'SUCCESS' : 'FAIL',
-                'raw_data' => $data
+                'raw_data' => $data['raw_data']??[]
             ];
             if ($data['bizCode'] !== '0000') {
                 $return['err_code'] = isset($data['subCode']) ? $data['subCode'] : '';
@@ -438,13 +442,8 @@ abstract class Bhecard extends GatewayInterface
             throw new InvalidArgumentException('Missing Config -- [sign_key]');
         }
         $data = $this->getSignContent($data);
-        $sign_key = $this->userConfig->get('sign_key');
-        $str = chunk_split($sign_key, 64, "\n");
-        $private_key = "-----BEGIN RSA PRIVATE KEY-----\n$str-----END RSA PRIVATE KEY-----\n";
-        $res = openssl_get_privatekey($private_key);
-        openssl_sign($data, $sign, $res);
-        openssl_free_key($res);
-        return base64_encode($sign);  //base64编码
+        return strtoupper(md5($data));
+
     }
 
     /**
@@ -454,7 +453,24 @@ abstract class Bhecard extends GatewayInterface
      */
     private function getSignContent($sign_data)
     {
-        return json_encode($sign_data, 320);
+        ksort($sign_data);
+        $params = [];
+        $getKey = false;
+        foreach ($sign_data as $key => $value) {
+            if ($key != 'sign') {
+                $params[] = $key . '=' . $value;
+            }
+            if ($key == 'opt' && $value == 'getSign') {
+                $getKey = true;
+            }
+        }
+        $data = implode("&", $params);
+        if ($getKey == true) {
+            $data .= "&key=" . $this->userConfig->get('channel_key');
+        } else {
+            $data .= "&key=" . $this->userConfig->get('sign_key');
+        }
+        return $data;
     }
 
     /**

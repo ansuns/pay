@@ -31,14 +31,14 @@ class Miniapp extends Bhecard
      */
     public function apply(array $options = [])
     {
-        $this->service = "easypay.js.pay.push";
+        $this->service = "apppayacc";
+        $options ['tradetype'] = $this->getTradeType();
         $this->setReqData($options);
         $result = $this->getResult();
+
         $result['success_data'] = "";
         if ($this->isSuccess($result)) {
-            $result['success_data'] = json_decode($result['pay_info'], true);;
-            $result['success_data'] = isset($result['success_data']['alipayTradeNo']) ? $result['success_data']['alipayTradeNo'] : $result['success_data'];
-            return $result;
+            $result['success_data'] = ($options['opt'] == 'apPreOrder') ? (string)$result['prepayid'] : json_decode($result['prepayid'], true);;
         }
         return $result;
     }
