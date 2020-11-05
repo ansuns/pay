@@ -32,6 +32,7 @@ class Mp extends Bhecard
     {
         $this->service = "apppayacc";
         $options ['tradetype'] = $this->getTradeType();
+        $options ['version'] = 2;
         $this->setReqData($options);
         $result = $this->getResult();
 
