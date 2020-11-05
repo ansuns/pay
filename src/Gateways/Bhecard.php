@@ -34,7 +34,7 @@ abstract class Bhecard extends GatewayInterface
      * @var string
      */
     protected $gateway_test = "https://test_nucc.bhecard.com:9088/api_gateway.do";
-    protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/";
+    protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
     protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
 
 
@@ -52,9 +52,9 @@ abstract class Bhecard extends GatewayInterface
         $this->userConfig = new Config($config);
         $this->config = [
             'channelid' => $this->userConfig->get('channelid', ''),
-            'sign' => '',
             'merid' => $this->userConfig->get('merid', ''),
             'termid' => $this->userConfig->get('termid', ''),
+            'sign' => '',
         ];
         $this->getSignKey();
     }
@@ -72,7 +72,7 @@ abstract class Bhecard extends GatewayInterface
         ];
         $config['sign'] = $this->getSign($config);
 
-        $return_data = $client->request('POST', $this->gateway . 'apppayacc', ['form_params' => $config])->getBody()->getContents();
+        $return_data = $client->request('POST', $this->gateway, ['form_params' => $config])->getBody()->getContents();
         $data = json_decode($return_data, true);
         $key = '';
         if (isset($data['resultcode']) && $data['resultcode'] == '00') {
@@ -111,7 +111,7 @@ abstract class Bhecard extends GatewayInterface
     {
         $this->config['sign'] = $this->getSign($this->config);
         $client = new Client(['verify' => false]);
-        $return_data = $client->request('POST', $this->gateway . $this->service, ['form_params' => $this->config])->getBody()->getContents();
+        $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
 
         if (!ToolsService::is_json($return_data)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $return_data);
@@ -176,20 +176,19 @@ abstract class Bhecard extends GatewayInterface
     }
 
     /**
-     * 订单退款操作
+     * 订单退款/撤销操作
      * @param array $options
      * @return array
      * @throws GatewayException
      */
     public function refund($options = [])
     {
-        $this->service = "easypay.merchant.refund";
         $reqData = [
+            'opt' => 'zwrefund',
             'subject' => $options['subject'] ?? '',//商户描述
-            'merchant_id' => $options['merchant_id'] ?? '',
-            'out_trade_no' => $options['out_trade_no'] ?? '',//退款订单编号
-            'origin_trade_no' => $options['origin_trade_no'] ?? '',//原支付订单编号
-            'refund_amount' => $options['refund_amount'] ?? '',//订单的交易退款金额，单位为分
+            'tradetrace' => $options['out_trade_no'] ?? '',//退款订单编号
+            'oritradetrace' => $options['origin_trade_no'] ?? '',//原支付订单编号
+            'tradeamt' => $options['refund_fee'] ?? '',//退款金额
         ];
         $this->setReqData($reqData);
         $data = $this->getResult();
@@ -269,26 +268,26 @@ abstract class Bhecard extends GatewayInterface
      */
     public function find($out_trade_no)
     {
-        $this->service = "easypay.merchant.query";
         $opitions = [
-            'merchant_id' => $this->userConfig->get('merchant_id'),
-            'out_trade_no' => $out_trade_no,
+            'opt' => 'tradeQuery',
+            'tradetrace' => $out_trade_no,
         ];
         $this->setReqData($opitions);
         $data = $this->getResult();
-        $trade_state = $data['trade_status'] ?? 'FAIL';
+        $trade_state = $data['resultcode'] ?? 'FAIL';
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
-        if ($this->isSuccess($data)) {
-            switch ($trade_state) {
-                case 'INIT':
-                case 'UNKNOWN':
-                    $trade_state = 'USER_PAYING';//支付中
-                    break;
-                case 'SUCCESS':
-                case 'BUSINESS_OK':
-                    $trade_state = 'SUCCESS';//支付成功
-                    break;
-            }
+        switch ($trade_state) {
+            case 'AA':
+            case 'UNKNOWN':
+                $trade_state = 'USER_PAYING';//支付中
+                break;
+            case 'SUCCESS':
+            case '00':
+                $trade_state = 'SUCCESS';//支付成功
+                break;
+            default:
+                $trade_state = 'USER_PAYING';//支付中
+                break;
         }
 
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
@@ -420,7 +419,7 @@ abstract class Bhecard extends GatewayInterface
                 //'time_end'       => ToolsService::format_time($data['payTime']),
                 'time_end' => $data['payTime'],
                 'trade_state' => ($data['bizMsg'] == '交易成功') ? 'SUCCESS' : 'FAIL',
-                'raw_data' => $data['raw_data']??[]
+                'raw_data' => $data['raw_data'] ?? []
             ];
             if ($data['bizCode'] !== '0000') {
                 $return['err_code'] = isset($data['subCode']) ? $data['subCode'] : '';
