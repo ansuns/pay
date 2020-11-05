@@ -61,7 +61,7 @@ switch ($act) {
             'opt' => 'wxPreOrder',
         ];
        // $res = $pay->driver('bhecard')->gateway('miniapp')->apply($options);
-        $options="202011052149359999";
+        $options="WXQR20201105231124218253";
         $res = $pay->driver('bhecard')->gateway('miniapp')->find($options);
         break;
     case'1pay':
