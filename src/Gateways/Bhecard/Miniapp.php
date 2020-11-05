@@ -20,7 +20,7 @@ class Miniapp extends Bhecard
      */
     protected function getTradeType()
     {
-        return 'MINIAPP';
+        return 'JSAPI';
     }
 
     /**
