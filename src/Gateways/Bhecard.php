@@ -313,8 +313,8 @@ abstract class Bhecard extends GatewayInterface
             'transaction_id' => $data['wxtransactionid'] ?? '',
             'out_trade_no' => $data['tradetrace'] ?? '',
             'attach' => '',
-            'pay_time'       =>  isset($data['wxtimeend']) ? date('Y-m-s H:i:s',strtotime($data['wxtimeend'])):date('Y-m-s H:i:s'),
-            'time_end' => isset($data['wxtimeend']) ? date('Y-m-s H:i:s',strtotime($data['wxtimeend'])):date('Y-m-s H:i:s'),
+            'pay_time'       =>  isset($data['wxtimeend']) ? date('Y-m-d H:i:s',strtotime($data['wxtimeend'])):date('Y-m-d H:i:s'),
+            'time_end' => isset($data['wxtimeend']) ? date('Y-m-d H:i:s',strtotime($data['wxtimeend'])):date('Y-m-d H:i:s'),
             'trade_state' => $data['trade_state'] ?? '',
             'raw_data' => $data
         ];
