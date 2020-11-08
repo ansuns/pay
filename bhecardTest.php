@@ -49,8 +49,21 @@ $config_pro_new = array(
 
 );
 $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_new]);
-$act = 'minipay';
+$act = 'refund11';
 switch ($act) {
+    case 'refund11':
+        $options = [
+            'out_trade_no' => 'RE'.date('YmdHis') . rand(9999, 10000),
+            'refund_fee' => 1,
+            'subject' => '订单退款',
+            //'out_trade_no' => 'o_dyg4sob1CKgdgue3yudDpGQtwE',
+            'origin_trade_no' => 'ALIQR20201108200240469241',
+            'opt' => 'zwrefund',
+        ];
+        // $res = $pay->driver('bhecard')->gateway('miniapp')->apply($options);
+       // $options="WXQR20201105231124218253";
+        $res = $pay->driver('bhecard')->gateway('miniapp')->refund($options);
+        break;
     case'minipay':
         $options = [
             'tradetrace' => date('YmdHis') . rand(9999, 10000),

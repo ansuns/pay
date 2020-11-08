@@ -127,50 +127,12 @@ abstract class Bhecard extends GatewayInterface
         $response_data['rawdata'] = $return_data;
         $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
+        $response_data['return_msg'] = isset($response_data['returnmsg']) ? $response_data['returnmsg'] : 'OK!';
         $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
         if ((!isset($response_data['resultcode']) || $response_data['resultcode'] !== '00')) {
             $response_data['result_code'] = 'FAIL';
             $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
-            $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
-        }
-        return $response_data;
-    }
-
-    protected function doData($return_data)
-    {
-        $service_return_name = str_replace(".", "_", $this->service) . '_response';
-        $resultOrigin = json_decode($return_data, true);
-
-        $trade_response = json_encode($resultOrigin[$service_return_name], 320);
-
-        // 失败
-        if (isset($resultOrigin['null_response'])) {
-            $service_return_name = 'null_response';
-            $trade_response = json_encode($resultOrigin[$service_return_name], 320);
-        }
-
-        if (!ToolsService::is_json($trade_response)) {
-            throw new GatewayException('返回结果不是有效json格式', 20000, $resultOrigin);
-        }
-        // 业务详细数据
-        $result = json_decode($trade_response, true);
-
-        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
-            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
-        }
-
-        $response_data = $result;
-        $response_data['sign'] = $resultOrigin['sign'] ?? '';
-        $response_data['rawdata'] = $return_data;
-        $response_data['return_code'] = 'SUCCESS'; //数据能解析则通信结果认为成功
-        $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
-        $response_data['return_msg'] = isset($response_data['msg']) ? $response_data['msg'] : 'OK!';
-        $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
-        if (isset($response_data['resultcode']) && $response_data['resultcode'] == '00') {
-            $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
-            $response_data['err_code_des'] = isset($response_data['msg']) ? $response_data['msg'] : '';
+            $response_data['err_code_des'] = isset($response_data['returnmsg']) ? $response_data['returnmsg'] : '';
         }
         return $response_data;
     }
@@ -185,31 +147,12 @@ abstract class Bhecard extends GatewayInterface
     {
         $reqData = [
             'opt' => 'zwrefund',
-            'subject' => $options['subject'] ?? '',//商户描述
             'tradetrace' => $options['out_trade_no'] ?? '',//退款订单编号
             'oritradetrace' => $options['origin_trade_no'] ?? '',//原支付订单编号
             'tradeamt' => $options['refund_fee'] ?? '',//退款金额
         ];
         $this->setReqData($reqData);
-        $data = $this->getResult();
-        //trade_type:"CONSUME":支付;"REFUND":退款;"DEPOSIT":充值
-        $trade_state = $data['trade_status'] ?? 'FAIL';
-
-        if ($this->isSuccess($data)) {
-            switch ($trade_state) {
-                case 'INIT':
-                case 'UNKNOWN':
-                    $trade_state = 'USER_PAYING';//支付中
-                    break;
-                case 'SUCCESS':
-                case 'BUSINESS_OK':
-                    $trade_state = 'SUCCESS';//支付成功
-                    break;
-            }
-        }
-
-        $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
-        return $data;
+        return $this->getResult();
     }
 
     /**
@@ -277,12 +220,11 @@ abstract class Bhecard extends GatewayInterface
         $trade_state = $data['resultcode'] ?? 'FAIL';
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
         switch ($trade_state) {
-            case 'AA':
+            case 'A0':
             case 'UNKNOWN':
                 $trade_state = 'USER_PAYING';//支付中
                 break;
-            case 'SUCCESS':
-            case '00':
+            case 'AA':
                 $trade_state = 'SUCCESS';//支付成功
                 break;
             default:
@@ -313,8 +255,8 @@ abstract class Bhecard extends GatewayInterface
             'transaction_id' => $data['wxtransactionid'] ?? '',
             'out_trade_no' => $data['tradetrace'] ?? '',
             'attach' => '',
-            'pay_time'       =>  isset($data['wxtimeend']) ? date('Y-m-d H:i:s',strtotime($data['wxtimeend'])):date('Y-m-d H:i:s'),
-            'time_end' => isset($data['wxtimeend']) ? date('Y-m-d H:i:s',strtotime($data['wxtimeend'])):date('Y-m-d H:i:s'),
+            'pay_time' => isset($data['wxtimeend']) ? date('Y-m-d H:i:s', strtotime($data['wxtimeend'])) : date('Y-m-d H:i:s'),
+            'time_end' => isset($data['wxtimeend']) ? date('Y-m-d H:i:s', strtotime($data['wxtimeend'])) : date('Y-m-d H:i:s'),
             'trade_state' => $data['trade_state'] ?? '',
             'raw_data' => $data
         ];
@@ -462,13 +404,14 @@ abstract class Bhecard extends GatewayInterface
             if ($key == 'opt' && $value == 'getSign') {
                 $getKey = true;
             }
+
+        }
+        if ($getKey == true) {
+            $params[] = "key=" . $this->userConfig->get('channel_key');
+        } else {
+            $params[] = "key=" . $this->userConfig->get('sign_key');
         }
         $data = implode("&", $params);
-        if ($getKey == true) {
-            $data .= "&key=" . $this->userConfig->get('channel_key');
-        } else {
-            $data .= "&key=" . $this->userConfig->get('sign_key');
-        }
         return $data;
     }
 
