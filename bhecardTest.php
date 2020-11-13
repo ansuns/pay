@@ -48,12 +48,60 @@ $config_pro_new = array(
     'env' => 'pro',
 
 );
+
+$config_pro_mch = array(
+    'clientCode' => '48310019',
+    'sign_key' => 'ShnaghaiOuAikeji',
+    'mode' => 'mch',
+
+);
+$config_pro_mch = array(
+    'clientCode' => '48318888',
+    'sign_key' => 'fudhsyrgnbpdeiba',
+    'mode' => 'mch',
+
+);
 $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_new]);
-$act = 'refund11';
+$act = '1pay';
 switch ($act) {
+    case 'mch1':
+        $temp = [
+            'name' => 'robin',
+            'sex' => 1
+        ];
+        $options2 = [
+            'messageType' => 'AGMERAPPLY',
+            'backUrl' => 'https://www.baidu.com',
+            'merInfo' => [
+                'merCode' => '1',// string 15 N 内部商户号
+                'merMode' => '1',//'=>'1',// string 1 N 商户类型（0-企业 1-个体户 2-个人）
+                'merName' => '1',//'=>'1',// string 100 N 注册名称
+                'businName' => '1',//'=>'1',// string 50 Y 经营名称 (店名)
+                'merEngName O' => '1',// string 50 Y 英文名称
+                'merType' => '1',//'=>'1',// string 4 N 商户类型（MCC），银联定义的'=>'1',//CC 编码
+                'standardFlag' => '1',//'=>'1',// string 1 N 行业大类 0-标准、1-优惠、2-减免
+                'merArea' => '1',//'=>'1',// string 4 N 商户区域：银联地区码
+                'merAddr' => '1',//'=>'1',// string 100 N 注册地址
+                'businBegtime' => '1',//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
+                'businEndtime' => '1',//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
+                'employeeNum' => '1',//'=>'1',// string 1 Y 公司规模:1：0-50 人；2：50-100 人；3:100 以上
+                'businForm' => '1',//'=>'1',// string 2 Y 经营形态：02-普通店、01-连锁店
+            ],
+            'merInfo'=>$temp,
+            'plusInfo' => $temp,
+            'sysInfo' => $temp,
+            'licInfo' => $temp,
+            'accInfo' => $temp,
+            'accInfoBak' => $temp,
+            'funcInfo' => $temp,
+            'picInfoList' => $temp,
+            'operaTrace' => date('YmdHis') . rand(9999, 10000),
+        ];
+        $res = $pay->driver('bhecard')->gateway('mch')->apply($options2);
+        break;
     case 'refund11':
         $options = [
-            'out_trade_no' => 'RE'.date('YmdHis') . rand(9999, 10000),
+            'out_trade_no' => 'RE' . date('YmdHis') . rand(9999, 10000),
             'refund_fee' => 1,
             'subject' => '订单退款',
             //'out_trade_no' => 'o_dyg4sob1CKgdgue3yudDpGQtwE',
@@ -61,7 +109,7 @@ switch ($act) {
             'opt' => 'zwrefund',
         ];
         // $res = $pay->driver('bhecard')->gateway('miniapp')->apply($options);
-       // $options="WXQR20201105231124218253";
+        // $options="WXQR20201105231124218253";
         $res = $pay->driver('bhecard')->gateway('miniapp')->refund($options);
         break;
     case'minipay':
@@ -73,8 +121,8 @@ switch ($act) {
             'notifyurl' => 'https://www.baidu.com',
             'opt' => 'wxPreOrder',
         ];
-       // $res = $pay->driver('bhecard')->gateway('miniapp')->apply($options);
-        $options="WXQR20201105231124218253";
+        // $res = $pay->driver('bhecard')->gateway('miniapp')->apply($options);
+        $options = "WXQR20201105231124218253";
         $res = $pay->driver('bhecard')->gateway('miniapp')->find($options);
         break;
     case'1pay':

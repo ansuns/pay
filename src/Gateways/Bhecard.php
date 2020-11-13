@@ -35,7 +35,10 @@ abstract class Bhecard extends GatewayInterface
      */
     protected $gateway_test = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
     protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
-    protected $aappppl = "https://test_nucc.bhecard.com:9088/api_gateway.do";
+    protected $gatewayMerchant = "https://180.168.215.67:4443/AG_MerchantManagementSystem_Core/agent/api/gen";
+
+    protected $gatewayMerchant2 = "https://mtest.eycard.cn:4443/AG_MerchantManagementSystem_Core/agent/api/gen";
+    protected $mode = 'pay';
 
 
     /**
@@ -45,18 +48,29 @@ abstract class Bhecard extends GatewayInterface
      */
     public function __construct(array $config)
     {
-        $env = $config['env'] ?? 'pro';
-        if ($env != 'pro') {
-            $this->gateway = $this->gateway_test;
-        }
+        $this->mode = $config['mode'] ?? 'pay';
         $this->userConfig = new Config($config);
-        $this->config = [
-            'channelid' => $this->userConfig->get('channelid', ''),
-            'merid' => $this->userConfig->get('merid', ''),
-            'termid' => $this->userConfig->get('termid', ''),
-            'sign' => '',
-        ];
-        $this->getSignKey();
+        if ($this->mode == 'pay') {
+            $env = $config['env'] ?? 'pro';
+            if ($env != 'pro') {
+                $this->gateway = $this->gateway_test;
+            }
+            $this->config = [
+                'channelid' => $this->userConfig->get('channelid', ''),
+                'merid' => $this->userConfig->get('merid', ''),
+                'termid' => $this->userConfig->get('termid', ''),
+                'sign' => '',
+            ];
+            $this->getSignKey();
+        } else {
+            $this->config = [
+                'clientCode' => $this->userConfig->get('clientCode', ''),
+                'version' => '1.0',
+               // 'MAC' => '',
+            ];
+            $this->gateway = $this->gatewayMerchant2;
+        }
+
     }
 
     /**
@@ -109,9 +123,18 @@ abstract class Bhecard extends GatewayInterface
      */
     protected function getResult()
     {
-        $this->config['sign'] = $this->getSign($this->config);
+
         $client = new Client(['verify' => false]);
-        $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
+        if ($this->mode == 'pay') {
+            $this->config['sign'] = $this->getSign($this->config);
+            $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
+        } else {
+            $this->config['MAC'] = $this->getSign($this->config);
+           //var_dump($this->config);
+            //$return_data = $this->post($this->gateway, $this->config, ['headers' => $header]);
+            $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
+        }
+
 
         if (!ToolsService::is_json($return_data)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $return_data);
@@ -398,6 +421,12 @@ abstract class Bhecard extends GatewayInterface
         $params = [];
         $getKey = false;
         foreach ($sign_data as $key => $value) {
+            if ($key == 'MAC' || empty($value)) {
+                continue;
+            }
+            if (is_array($value)) {
+                $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+            }
             if ($key != 'sign') {
                 $params[] = $key . '=' . $value;
             }
