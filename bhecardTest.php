@@ -64,37 +64,80 @@ $config_pro_mch = array(
 $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_new]);
 $act = '1pay';
 switch ($act) {
+    case 'findsss':
+       $operaTrace = date('YmdHis') . rand(9999, 10000);
+        $res = $pay->driver('bhecard')->gateway('mch')->find($operaTrace);
+        break;
     case 'mch1':
         $temp = [
             'name' => 'robin',
             'sex' => 1
         ];
+        $date = [
+            "2011.01.01", "2039.01.01"
+        ];
         $options2 = [
             'messageType' => 'AGMERAPPLY',
             'backUrl' => 'https://www.baidu.com',
             'merInfo' => [
-                'merCode' => '1',// string 15 N 内部商户号
-                'merMode' => '1',//'=>'1',// string 1 N 商户类型（0-企业 1-个体户 2-个人）
-                'merName' => '1',//'=>'1',// string 100 N 注册名称
-                'businName' => '1',//'=>'1',// string 50 Y 经营名称 (店名)
-                'merEngName O' => '1',// string 50 Y 英文名称
-                'merType' => '1',//'=>'1',// string 4 N 商户类型（MCC），银联定义的'=>'1',//CC 编码
-                'standardFlag' => '1',//'=>'1',// string 1 N 行业大类 0-标准、1-优惠、2-减免
-                'merArea' => '1',//'=>'1',// string 4 N 商户区域：银联地区码
-                'merAddr' => '1',//'=>'1',// string 100 N 注册地址
-                'businBegtime' => '1',//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
-                'businEndtime' => '1',//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
+                'merMode' => '2',//'=>'1',// string 1 N 商户类型（0-企业 1-个体户 2-个人）
+                'merName' => '欧爱测试门店',//'=>'1',// string 100 N 注册名称
+                'businName' => '欧爱测试门店',//'=>'1',// string 50 Y 经营名称 (店名)
+                'merEngName' => 'ouaiceshi',// string 50 Y 英文名称
+                'merType' => '5331',//'=>'1',// string 4 N 商户类型（MCC），银联定义的'=>'1',//CC 编码
+                'standardFlag' => '0',//'=>'1',// string 1 N 行业大类 0-标准、1-优惠、2-减免
+                'merArea' => '402345000690',//'=>'1',// string 4 N 商户区域：银联地区码
+                'merAddr' => '深圳市龙华区',//'=>'1',// string 100 N 注册地址
+                'businBegtime' => $date,//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
+                'businEndtime' => $date,//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
                 'employeeNum' => '1',//'=>'1',// string 1 Y 公司规模:1：0-50 人；2：50-100 人；3:100 以上
-                'businForm' => '1',//'=>'1',// string 2 Y 经营形态：02-普通店、01-连锁店
+                'businForm' => '02',//'=>'1',// string 2 Y 经营形态：02-普通店、01-连锁店
             ],
-            'merInfo'=>$temp,
-            'plusInfo' => $temp,
-            'sysInfo' => $temp,
-            'licInfo' => $temp,
-            'accInfo' => $temp,
+            'plusInfo' => [
+                'merLegal' => '姓名',//'=>'',// string 50 N 法定代表人姓名
+                'legalType' => '0',//'=>'',// string 1 N
+                'legalCode' => '450881199108052911',//'=>'',// string 30 N 法人证件号码
+                'legalValidity' => $date,//'=>'',// string 30 Y 证件有效期 格式：["起始日期","截止日期"],JSON 格式字符串, 例如：["2011.01.01","2039.01.01"]
+                'legalPhone' => '15813765522',//'=>'',// string 30 Y 手机号
+                'legalMobile' => '02022263212',// string 30 Y 固定电话
+                'linkMan' => '姓名',//'=>'',// string 50 Y 商户联系人姓名
+                'linkmanType' => '0',//'=>'',// string 1 Y
+                'linkmanCode' => '450881199108052911',//'=>'',// string 30 Y 证件号码
+                'linkmanValidity' => $date,//'=>'',// string 30 Y 证件有效期 格式：["起始日期","截止日期"],JSON 格式字符串
+                'linkmanPhone' => '15813765522',//'=>'',// string
+            ],
+            'sysInfo' => [
+                'licName' => '欧爱测试门店',
+                'businScope' => '欧爱测试门店',
+                'capital' => '1000',
+                'licAddr' => '深圳市龙华区',
+                'controlerName' => '姓名',
+                'controlerLegalCode' => '450881199108052911',
+                'controlerLegalType' => '0',
+                'controlerLegalValidity' => $date
+            ],
+            'licInfo' => ['username' => 'ouai-tt', 'areaNo' => '0755'],
+            'accInfo' => [
+                'bankName' => '2222',
+                'bankCode' => '2222',
+                'account' => '2222',
+                'accName' => '2222',
+                'accType' => '2222',
+            ],
             'accInfoBak' => $temp,
-            'funcInfo' => $temp,
-            'picInfoList' => $temp,
+            'funcInfo' => [
+                [
+                    'funcId' => 2,
+                    'calcVal' => '0.38'
+                ],
+                [
+                    'funcId' => 3,
+                    'calcVal' => '0.38'
+                ]
+            ],
+            'picInfoList' => [
+                ['picMode' => '01', 'fileId' => '222']
+            ],
             'operaTrace' => date('YmdHis') . rand(9999, 10000),
         ];
         $res = $pay->driver('bhecard')->gateway('mch')->apply($options2);

@@ -103,6 +103,11 @@ abstract class Bhecard extends GatewayInterface
      */
     protected function setReqData($array)
     {
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                $array[$k] = json_encode($v, 320);
+            }
+        }
         $this->config += $array;
         return $this;
     }
@@ -131,7 +136,9 @@ abstract class Bhecard extends GatewayInterface
             $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         } else {
             $this->config['messageType'] = $this->service;
+
             $this->config['MAC'] = $this->getSign($this->config);
+            var_dump($this->config);
             $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         }
 
@@ -440,6 +447,7 @@ abstract class Bhecard extends GatewayInterface
             $params[] = "key=" . $this->userConfig->get('sign_key');
         }
         $data = implode("&", $params);
+        var_dump($data);
         return $data;
     }
 
