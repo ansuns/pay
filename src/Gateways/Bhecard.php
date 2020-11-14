@@ -64,9 +64,10 @@ abstract class Bhecard extends GatewayInterface
             $this->getSignKey();
         } else {
             $this->config = [
-                'clientCode' => $this->userConfig->get('clientCode', ''),
                 'version' => '1.0',
-               // 'MAC' => '',
+                'clientCode' => $this->userConfig->get('clientCode', ''),
+                'messageType' => '',
+                'MAC' => '',
             ];
             $this->gateway = $this->gatewayMerchant2;
         }
@@ -129,12 +130,10 @@ abstract class Bhecard extends GatewayInterface
             $this->config['sign'] = $this->getSign($this->config);
             $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         } else {
+            $this->config['messageType'] = $this->service;
             $this->config['MAC'] = $this->getSign($this->config);
-           //var_dump($this->config);
-            //$return_data = $this->post($this->gateway, $this->config, ['headers' => $header]);
             $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         }
-
 
         if (!ToolsService::is_json($return_data)) {
             throw new GatewayException('返回结果不是有效json格式', 20000, $return_data);

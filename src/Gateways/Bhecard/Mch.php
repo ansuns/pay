@@ -30,6 +30,7 @@ class Mch extends Bhecard
      */
     public function apply(array $options = [])
     {
+        $this->service = 'AGMERAPPLY';
         $this->setReqData($options);
         $data = $this->getResult();
         return $data;
@@ -217,16 +218,20 @@ class Mch extends Bhecard
         return $data ?: $result;
     }
 
+
     /**
-     * 查询订单状态
-     * @param string $out_trade_no 商户订单号
+     * 查询进件状态
+     * @param string $operaTrace
      * @return array
      * @throws GatewayException
      */
-    public function find($out_trade_no = '')
+    public function find($operaTrace = '')
     {
-        //todo
-        return $this->getResult($this->gateway_query);
+        $this->service = 'QUERYAUDMER';
+        $this->setReqData([
+            'operaTrace' => $operaTrace,
+        ]);
+        return $this->getResult();
     }
 
     /**
