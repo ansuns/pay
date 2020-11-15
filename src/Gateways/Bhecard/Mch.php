@@ -57,19 +57,6 @@ class Mch extends Bhecard
      */
     public function photo(array $options = [])
     {
-        $this->service = "merchant.add.photo";
-        $micro = $this->userConfig['micro'] ?? false;
-        if ($micro) {
-            // 小微商户
-            $this->service = "small.merchant.photo";
-        }
-        $enCodeArr = [];
-        // 敏感字段加密
-        foreach ($options as $key => $val) {
-            if (!empty($val) && in_array($key, $enCodeArr)) {
-                $options[$key] = $this->desEncrypt($val);
-            }
-        }
         $this->setReqData($options);
         return $this->getResult();
     }

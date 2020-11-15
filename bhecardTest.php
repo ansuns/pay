@@ -55,17 +55,41 @@ $config_pro_mch = array(
     'mode' => 'mch',
 
 );
-$config_pro_mch = array(
+
+$config_pro_mcht = array(
+    'clientCode' => '48310037',
+    'sign_key' => 'ShnaghaiOuAikeji',
+    'mode' => 'mch',
+
+);
+
+//
+$config_pro_mch2 = array(
     'clientCode' => '48318888',
     'sign_key' => 'fudhsyrgnbpdeiba',
     'mode' => 'mch',
 
 );
+
+$config_pro_upload = array(
+    'clientCode' => '48318888',
+    'sign_key' => 'fudhsyrgnbpdeiba',
+    'mode' => 'upload',
+
+);
 $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_new]);
 $act = '1pay';
 switch ($act) {
+    case 'upload11':
+        $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_upload]);
+        $operaTrace = [
+            'fileName' => __DIR__ . DIRECTORY_SEPARATOR . "qqlogo.jpg",
+            'picMode' => '01'
+        ];
+        $res = $pay->driver('bhecard')->gateway('mch')->photo($operaTrace);
+        break;
     case 'findsss':
-       $operaTrace = date('YmdHis') . rand(9999, 10000);
+        $operaTrace = date('YmdHis') . rand(9999, 10000);
         $res = $pay->driver('bhecard')->gateway('mch')->find($operaTrace);
         break;
     case 'mch1':
@@ -76,6 +100,7 @@ switch ($act) {
         $date = [
             "2011.01.01", "2039.01.01"
         ];
+        $fileiD = "5fb0d4303e10af73007417a3";
         $options2 = [
             'messageType' => 'AGMERAPPLY',
             'backUrl' => 'https://www.baidu.com',
@@ -87,27 +112,27 @@ switch ($act) {
                 'merType' => '5331',//'=>'1',// string 4 N 商户类型（MCC），银联定义的'=>'1',//CC 编码
                 'standardFlag' => '0',//'=>'1',// string 1 N 行业大类 0-标准、1-优惠、2-减免
                 'merArea' => '402345000690',//'=>'1',// string 4 N 商户区域：银联地区码
-                'merAddr' => '深圳市龙华区',//'=>'1',// string 100 N 注册地址
-                'businBegtime' => $date,//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
-                'businEndtime' => $date,//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
+                'merAddr' => '深圳市龙华区大浪街道',//'=>'1',// string 100 N 注册地址
+                'businBegtime' => '0630',//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
+                'businEndtime' => '2230',//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
                 'employeeNum' => '1',//'=>'1',// string 1 Y 公司规模:1：0-50 人；2：50-100 人；3:100 以上
                 'businForm' => '02',//'=>'1',// string 2 Y 经营形态：02-普通店、01-连锁店
             ],
             'plusInfo' => [
-                'merLegal' => '姓名',//'=>'',// string 50 N 法定代表人姓名
+                'merLegal' => '杨锦',//'=>'',// string 50 N 法定代表人姓名
                 'legalType' => '0',//'=>'',// string 1 N
                 'legalCode' => '450881199108052911',//'=>'',// string 30 N 法人证件号码
                 'legalValidity' => $date,//'=>'',// string 30 Y 证件有效期 格式：["起始日期","截止日期"],JSON 格式字符串, 例如：["2011.01.01","2039.01.01"]
                 'legalPhone' => '15813765522',//'=>'',// string 30 Y 手机号
                 'legalMobile' => '02022263212',// string 30 Y 固定电话
-                'linkMan' => '姓名',//'=>'',// string 50 Y 商户联系人姓名
+                'linkMan' => '杨锦',//'=>'',// string 50 Y 商户联系人姓名
                 'linkmanType' => '0',//'=>'',// string 1 Y
                 'linkmanCode' => '450881199108052911',//'=>'',// string 30 Y 证件号码
                 'linkmanValidity' => $date,//'=>'',// string 30 Y 证件有效期 格式：["起始日期","截止日期"],JSON 格式字符串
                 'linkmanPhone' => '15813765522',//'=>'',// string
             ],
-            'sysInfo' => [
-                'licName' => '欧爱测试门店',
+            'licInfo' => [
+                //'licName' => '欧爱测试门店',
                 'businScope' => '欧爱测试门店',
                 'capital' => '1000',
                 'licAddr' => '深圳市龙华区',
@@ -116,15 +141,24 @@ switch ($act) {
                 'controlerLegalType' => '0',
                 'controlerLegalValidity' => $date
             ],
-            'licInfo' => ['username' => 'ouai-tt', 'areaNo' => '0755'],
-            'accInfo' => [
-                'bankName' => '2222',
-                'bankCode' => '2222',
-                'account' => '2222',
-                'accName' => '2222',
-                'accType' => '2222',
+            'sysInfo' => [
+                'termMode' => '2',
+                'username' => 'ouaitt',
+                'areaNo' => '0755',
+                'termArea' => '0755',
+                'installaddress' => '深圳市龙华区',
+                'linkMan' => '杨锦',
+                'linkPhone' => '15813765522',
+                'termModelLic' => '0755',
             ],
-            'accInfoBak' => $temp,
+            'accInfo' => [
+                'bankName' => '中国银行',
+                'bankCode' => '10000023',
+                'account' => '69696666666666666',
+                'accName' => '欧爱大数据',
+                'accType' => '00',
+            ],
+            //'accInfoBak' => $temp,
             'funcInfo' => [
                 [
                     'funcId' => 2,
@@ -136,7 +170,12 @@ switch ($act) {
                 ]
             ],
             'picInfoList' => [
-                ['picMode' => '01', 'fileId' => '222']
+                ['picMode' => '01', 'fileId' => $fileiD],
+                ['picMode' => '02', 'fileId' => $fileiD],
+                ['picMode' => '03', 'fileId' => $fileiD],
+                ['picMode' => '04', 'fileId' => $fileiD],
+                ['picMode' => '05', 'fileId' => $fileiD],
+                ['picMode' => '06', 'fileId' => $fileiD],
             ],
             'operaTrace' => date('YmdHis') . rand(9999, 10000),
         ];

@@ -33,11 +33,12 @@ abstract class Bhecard extends GatewayInterface
     /**
      * @var string
      */
-    protected $gateway_test = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
-    protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";
-    protected $gatewayMerchant = "https://180.168.215.67:4443/AG_MerchantManagementSystem_Core/agent/api/gen";
+    protected $gateway_test = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";// 交易地址
+    protected $gateway = "https://notify-test.eycard.cn:7443/WorthTech_Access_AppPaySystemV2/apppayacc";// 交易地址
+    protected $gatewayMerchant = "https://180.168.215.67:4443/AG_MerchantManagementSystem_Core/agent/api/gen";//进件地址
 
-    protected $gatewayMerchant2 = "https://mtest.eycard.cn:4443/AG_MerchantManagementSystem_Core/agent/api/gen";
+    protected $gatewayMerchant2 = "https://mtest.eycard.cn:4443/AG_MerchantManagementSystem_Core/agent/api/gen";//进件地址
+    protected $gatewayPhoto = "https://180.168.215.67:4443/AG_MerchantManagementSystem_Core/agent/api/imgUpl";
     protected $mode = 'pay';
 
 
@@ -62,7 +63,10 @@ abstract class Bhecard extends GatewayInterface
                 'sign' => '',
             ];
             $this->getSignKey();
-        } else {
+        }
+
+        // 进件其他接口
+        if ($this->mode == 'mch') {
             $this->config = [
                 'version' => '1.0',
                 'clientCode' => $this->userConfig->get('clientCode', ''),
@@ -70,6 +74,16 @@ abstract class Bhecard extends GatewayInterface
                 'MAC' => '',
             ];
             $this->gateway = $this->gatewayMerchant2;
+        }
+
+        // 上传图片
+        if ($this->mode == 'upload') {
+            $this->gateway = $this->gatewayPhoto;
+            $this->config = [
+                'version' => '1.0',
+                'clientCode' => $this->userConfig->get('clientCode', ''),
+                'MAC' => '',
+            ];
         }
 
     }
@@ -135,11 +149,38 @@ abstract class Bhecard extends GatewayInterface
             $this->config['sign'] = $this->getSign($this->config);
             $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
         } else {
-            $this->config['messageType'] = $this->service;
+
+            $fileName = isset($this->config['fileName']) ? $this->config['fileName'] : '';
+            unset($this->config['fileName']);
+            if ($this->mode != 'upload') {
+                $this->config['messageType'] = $this->service;
+            }
 
             $this->config['MAC'] = $this->getSign($this->config);
-            var_dump($this->config);
-            $return_data = $client->request('POST', $this->gateway, ['form_params' => $this->config])->getBody()->getContents();
+            $type = 'form_params';
+
+            $data = $this->config;
+
+            if ($fileName) {
+                $tmp_files = [];
+                $tmp_files[] = [
+                    'name' => 'fileName',
+                    'contents' => fopen($fileName, 'r'),
+                    'filename' => $fileName
+                ];
+                $tmp = [];
+                foreach ($this->config as $k => $v) {
+                    $tmp[] = [
+                        'name' => $k,
+                        'contents' => $v
+                    ];
+                }
+
+                $data = array_merge($tmp, $tmp_files);
+                $type = 'multipart';
+            }
+
+            $return_data = $client->request('POST', $this->gateway, [$type => $data])->getBody()->getContents();
         }
 
         if (!ToolsService::is_json($return_data)) {
