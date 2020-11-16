@@ -188,9 +188,9 @@ abstract class Bhecard extends GatewayInterface
         }
         $return_data = json_decode($return_data, true);
 
-//        if (!empty($resultOrigin['sign']) && !$this->verify($trade_response, $resultOrigin['sign'], $this->userConfig->get('easy_public_key'))) {
-//            throw new GatewayException('验证签名失败', 20000, $resultOrigin);
-//        }
+        if (!$this->verify($return_data, $return_data['MAC'], $this->userConfig->get('sign_key'))) {
+            throw new GatewayException('验证签名失败', 20000, $return_data);
+        }
 
         $response_data = $return_data;
         $response_data['sign'] = $resultOrigin['sign'] ?? '';
@@ -287,6 +287,8 @@ abstract class Bhecard extends GatewayInterface
         ];
         $this->setReqData($opitions);
         $data = $this->getResult();
+
+        return $data;
         $trade_state = $data['resultcode'] ?? 'FAIL';
         $data['trade_state'] = ($trade_state == 'USER_PAYING') ? 'USERPAYING' : $trade_state;
         switch ($trade_state) {
@@ -342,12 +344,7 @@ abstract class Bhecard extends GatewayInterface
      */
     public function verify($data, $sign = null, $public_key = false)
     {
-        $str = chunk_split($public_key, 64, "\n");
-        $public_key = "-----BEGIN PUBLIC KEY-----\n$str-----END PUBLIC KEY-----\n";
-        $pu_key = openssl_pkey_get_public($public_key);
-        $verify = openssl_verify($data, base64_decode($sign), $pu_key, OPENSSL_ALGO_SHA1);
-        openssl_free_key($pu_key);
-        return $verify == 1;
+        return $this->getSign($data) === $sign;
     }
 
     /**

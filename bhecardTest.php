@@ -90,7 +90,7 @@ $config_pro_upload_my = array(
 
 );
 $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_mch_new]);
-$act = 'mch1';
+$act = 'findsss';
 switch ($act) {
     case 'upload11':
         $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_upload_my]);
@@ -102,7 +102,7 @@ switch ($act) {
         file_put_contents('./result.txt', json_encode($res["fileId"]) . PHP_EOL, FILE_APPEND);
         break;
     case 'findsss':
-        $operaTrace = date('YmdHis') . rand(9999, 10000);
+        $operaTrace = 'A20201116095346';
         $res = $pay->driver('bhecard')->gateway('mch')->find($operaTrace);
         break;
     case 'mch1':
