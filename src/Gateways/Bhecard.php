@@ -488,7 +488,7 @@ abstract class Bhecard extends GatewayInterface
             $params[] = "key=" . $this->userConfig->get('sign_key');
         }
         $data = implode("&", $params);
-        var_dump($data);
+        //var_dump($data);
         return $data;
     }
 

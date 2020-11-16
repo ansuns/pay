@@ -71,22 +71,35 @@ $config_pro_mch2 = array(
 
 );
 
+$config_pro_mch_new = array(
+    'clientCode' => '48310019',
+    'sign_key' => 'ShnaghaiOuAikeji',
+    'mode' => 'mch',
+
+);
 $config_pro_upload = array(
     'clientCode' => '48318888',
     'sign_key' => 'fudhsyrgnbpdeiba',
     'mode' => 'upload',
 
 );
-$pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_new]);
-$act = '1pay';
+$config_pro_upload_my = array(
+    'clientCode' => '48310019',
+    'sign_key' => 'ShnaghaiOuAikeji',
+    'mode' => 'upload',
+
+);
+$pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_mch_new]);
+$act = 'mch1';
 switch ($act) {
     case 'upload11':
-        $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_upload]);
+        $pay = new \Ansuns\Pay\Pay(['bhecard' => $config_pro_upload_my]);
         $operaTrace = [
             'fileName' => __DIR__ . DIRECTORY_SEPARATOR . "qqlogo.jpg",
             'picMode' => '01'
         ];
         $res = $pay->driver('bhecard')->gateway('mch')->photo($operaTrace);
+        file_put_contents('./result.txt', json_encode($res["fileId"]) . PHP_EOL, FILE_APPEND);
         break;
     case 'findsss':
         $operaTrace = date('YmdHis') . rand(9999, 10000);
@@ -100,7 +113,7 @@ switch ($act) {
         $date = [
             "2011.01.01", "2039.01.01"
         ];
-        $fileiD = "5fb0d4303e10af73007417a3";
+        $fileiD = "5fb1d9653e10af7300741d17";
         $options2 = [
             'messageType' => 'AGMERAPPLY',
             'backUrl' => 'https://www.baidu.com',
@@ -111,7 +124,7 @@ switch ($act) {
                 'merEngName' => 'ouaiceshi',// string 50 Y 英文名称
                 'merType' => '5331',//'=>'1',// string 4 N 商户类型（MCC），银联定义的'=>'1',//CC 编码
                 'standardFlag' => '0',//'=>'1',// string 1 N 行业大类 0-标准、1-优惠、2-减免
-                'merArea' => '402345000690',//'=>'1',// string 4 N 商户区域：银联地区码
+                'merArea' => '5848',//'=>'1',// string 4 N 商户区域：银联地区码
                 'merAddr' => '深圳市龙华区大浪街道',//'=>'1',// string 100 N 注册地址
                 'businBegtime' => '0630',//'=>'1',// string 10 Y 营业时间：开始时间，格式：HHMM
                 'businEndtime' => '2230',//'=>'1',// string 10 Y 营业时间：结束时间，格式：HHMM
@@ -142,21 +155,26 @@ switch ($act) {
                 'controlerLegalValidity' => $date
             ],
             'sysInfo' => [
-                'termMode' => '2',
-                'username' => 'ouaitt',
-                'areaNo' => '0755',
-                'termArea' => '0755',
-                'installaddress' => '深圳市龙华区',
-                'linkMan' => '杨锦',
-                'linkPhone' => '15813765522',
-                'termModelLic' => '0755',
+//                [
+//                    'termMode' => '2',
+//                    'username' => 'ouaitt',
+//                    'areaNo' => '0755',
+//                    'termArea' => '0755',
+//                    'installaddress' => '深圳市龙华区',
+//                    'linkMan' => '杨锦',
+//                    'linkPhone' => '15813765522',
+//                    'termModelLic' => '0755',
+//                ]
             ],
             'accInfo' => [
                 'bankName' => '中国银行',
-                'bankCode' => '10000023',
+                'bankCode' => '313100000013',
                 'account' => '69696666666666666',
                 'accName' => '欧爱大数据',
                 'accType' => '00',
+                'legalType' => "0",
+                'legalCode' => '450881199108052911',
+                'accPhone' => '15813765522'
             ],
             //'accInfoBak' => $temp,
             'funcInfo' => [
@@ -170,14 +188,24 @@ switch ($act) {
                 ]
             ],
             'picInfoList' => [
-                ['picMode' => '01', 'fileId' => $fileiD],
-                ['picMode' => '02', 'fileId' => $fileiD],
-                ['picMode' => '03', 'fileId' => $fileiD],
-                ['picMode' => '04', 'fileId' => $fileiD],
-                ['picMode' => '05', 'fileId' => $fileiD],
-                ['picMode' => '06', 'fileId' => $fileiD],
+                ['picMode' => '01', 'fileId' => '5fb1da323e10af7300741d1c'],
+                ['picMode' => '02', 'fileId' => '5fb1da3d3e10af7300741d22'],
+                ['picMode' => '03', 'fileId' => '5fb1da3e3e10af7300741d24'],
+                ['picMode' => '04', 'fileId' => '5fb1da3f3e10af7300741d26'],
+                ['picMode' => '05', 'fileId' => '5fb1da3f3e10af7300741d28'],
+                ['picMode' => '06', 'fileId' => '5fb1da403e10af7300741d2a'],
+
+                ['picMode' => '07', 'fileId' => '5fb1da413e10af7300741d2c'],
+                ['picMode' => '08', 'fileId' => '5fb1dae13e10af7300741d39'],
+                ['picMode' => '09', 'fileId' => '5fb1dae33e10af7300741d3b'],
+                ['picMode' => '10', 'fileId' => '5fb1dae33e10af7300741d3d'],
+
+                ['picMode' => '11', 'fileId' => '5fb1db863e10af7300741d45'],
+                ['picMode' => '12', 'fileId' => '5fb1db873e10af7300741d47'],
+                ['picMode' => '14', 'fileId' => '5fb1db883e10af7300741d49'],
+                ['picMode' => '15', 'fileId' => '5fb1db893e10af7300741d4b'],
             ],
-            'operaTrace' => date('YmdHis') . rand(9999, 10000),
+            'operaTrace' => 'A' . date('YmdHis'),
         ];
         $res = $pay->driver('bhecard')->gateway('mch')->apply($options2);
         break;
