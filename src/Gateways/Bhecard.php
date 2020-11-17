@@ -187,10 +187,14 @@ abstract class Bhecard extends GatewayInterface
             throw new GatewayException('返回结果不是有效json格式', 20000, $return_data);
         }
         $return_data = json_decode($return_data, true);
-
-        if (!$this->verify($return_data, $return_data['MAC'], $this->userConfig->get('sign_key'))) {
-            throw new GatewayException('验证签名失败', 20000, $return_data);
+        foreach ($return_data as $k => $v) {
+            if (ToolsService::is_json($v)) {
+                $return_data[$k] = json_decode($v, true);
+            }
         }
+//        if (!$this->verify($return_data, $return_data['MAC'], $this->userConfig->get('sign_key'))) {
+//            throw new GatewayException('验证签名失败', 20000, $return_data);
+//        }
 
         $response_data = $return_data;
         $response_data['sign'] = $resultOrigin['sign'] ?? '';
