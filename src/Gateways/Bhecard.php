@@ -203,10 +203,19 @@ abstract class Bhecard extends GatewayInterface
         $response_data['result_code'] = 'SUCCESS'; //初始状态为成功,如果失败会重新赋值
         $response_data['return_msg'] = isset($response_data['returnmsg']) ? $response_data['returnmsg'] : 'OK!';
         $result['trade_status'] = $result['trade_status'] ?? 'ERROR';
-        if ((!isset($response_data['resultcode']) || $response_data['resultcode'] !== '00')) {
-            $response_data['result_code'] = 'FAIL';
-            $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
-            $response_data['err_code_des'] = isset($response_data['returnmsg']) ? $response_data['returnmsg'] : '';
+        if ($this->mode == 'pay') {
+            if ((!isset($response_data['resultcode']) || $response_data['resultcode'] !== '00')) {
+                $response_data['result_code'] = 'FAIL';
+                $response_data['err_code'] = isset($response_data['code']) ? $response_data['code'] : '';
+                $response_data['err_code_des'] = isset($response_data['returnmsg']) ? $response_data['returnmsg'] : '';
+            }
+        }
+        if ($this->mode != 'pay') {
+            if ((!isset($response_data['retCode']) || $response_data['retCode'] !== '0000')) {
+                $response_data['result_code'] = 'FAIL';
+                $response_data['err_code'] = isset($response_data['retCode']) ? $response_data['retCode'] : '';
+                $response_data['err_code_des'] = isset($response_data['retMsg']) ? $response_data['retMsg'] : '';
+            }
         }
         return $response_data;
     }
