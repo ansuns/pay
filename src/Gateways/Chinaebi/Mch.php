@@ -278,4 +278,26 @@ class Mch extends Chinaebi
         $data['trade_state'] = 'SUCCESS';
         return $data;
     }
+
+    /**
+     * 修改费率
+     * @param array $options
+     * @return array|mixed
+     */
+    public function update(array $options)
+    {
+        $this->service = '/rest/standardMerchant/update';
+        $micro = $this->userConfig['micro'] ?? false;
+        if ($micro) {
+            $this->service = "/rest/microMerchant/update";
+
+        }
+        $this->setReqData($options);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $data['trade_state'] = 'SUCCESS';
+        return $data;
+    }
 }
