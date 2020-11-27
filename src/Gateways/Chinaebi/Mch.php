@@ -201,6 +201,17 @@ class Mch extends Chinaebi
             ];
         }
 
+        if (in_array($this->service, ["/rest/standardMerchant/update", "/rest/microMerchant/update"])) {
+            $tmp = [];
+            foreach ($this->body as $k => $v) {
+                $tmp[] = [
+                    'name' => $k,
+                    'contents' => $v
+                ];
+            }
+            $data = ['multipart' => $tmp];
+        }
+
         $url = $this->gatewayMch . $this->service;
         $result = $client->request('POST', $url, $data)->getBody()->getContents();
 
@@ -286,7 +297,7 @@ class Mch extends Chinaebi
      */
     public function update(array $options)
     {
-        $this->service = '/rest/standardMerchant/update';
+        $this->service = "/rest/standardMerchant/update";
         $micro = $this->userConfig['micro'] ?? false;
         if ($micro) {
             $this->service = "/rest/microMerchant/update";
