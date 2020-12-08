@@ -30,6 +30,7 @@ class Scan extends Chinaebi
      */
     public function apply(array $options = [])
     {
-        return $this->preOrder($options)['code_url'];
+        $this->setReqData($options);
+        return $this->getResult();
     }
 }

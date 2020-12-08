@@ -120,6 +120,11 @@ abstract class Chinaebi extends GatewayInterface
      */
     protected function getResult()
     {
+        if ($this->body['trancde'] == 'P00') {
+            $this->config['trm_sn'] = $this->body['trm_sn'] ?? '';
+            $this->config['imei'] = $this->body['imei'] ?? '';
+            $this->config['trm_id'] = $this->body['trm_id'] ?? '';
+        }
         $this->config['sign'] = $this->getSign($this->config);
         $request = [
             'head' => $this->config,
@@ -292,7 +297,7 @@ abstract class Chinaebi extends GatewayInterface
         }
         $data['openid'] = $data['body']['open_id'] ?? '';
         $data['pay_amount'] = isset($data['body']['pay_amount']) ? ToolsService::ncPriceFen2yuan($data['body']['pay_amount']) : '';
-        $data['pay_time'] = strtotime($data['body']['pay_time']) ?? time();
+        $data['pay_time'] = strtotime($data['body']['pay_time'] ?? date('Y-m-d H:i:s')) ?? time();
         $data['channel_no'] = $data['body']['channel_no'] ?? '';
         //02：支付宝, 01：微信, 03: 银联
         if ($data['body']['pay_type'] == '02' || $data['body']['pay_type'] == 'AL_JSAPI' || $data['body']['pay_type'] == 'ALIPAY') {

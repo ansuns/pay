@@ -33,6 +33,5 @@ class Pos extends Chinaebi
     {
         $this->setReqData($options);
         return $this->getResult();
-        return $result;
     }
 }

@@ -311,4 +311,16 @@ class Mch extends Chinaebi
         $data['trade_state'] = 'SUCCESS';
         return $data;
     }
+
+    public function stdBinding(array $options)
+    {
+        $this->service = "/rest/terminal/stdBinding";
+        $this->setReqData($options);
+        $data = $this->getResult();
+        if (!$this->isSuccess($data)) {
+            return $this->failedReturn($data);
+        }
+        $data['trade_state'] = 'SUCCESS';
+        return $data;
+    }
 }
