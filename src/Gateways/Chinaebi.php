@@ -121,9 +121,9 @@ abstract class Chinaebi extends GatewayInterface
     protected function getResult()
     {
         if ($this->body['trancde'] == 'P00') {
-            $this->config['trm_sn'] = $this->body['trm_sn'] ?? '';
-            $this->config['imei'] = $this->body['imei'] ?? '';
-            $this->config['trm_id'] = $this->body['trm_id'] ?? '';
+            $this->config['trm_sn'] = $this->userConfig->get('trm_sn', '');
+            $this->config['imei'] = $this->userConfig->get('imei', '');
+            $this->config['trm_id'] = $this->userConfig->get('trm_id', '');
         }
         $this->config['sign'] = $this->getSign($this->config);
         $request = [
