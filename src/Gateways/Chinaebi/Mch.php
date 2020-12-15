@@ -201,7 +201,7 @@ class Mch extends Chinaebi
             ];
         }
 
-        if (in_array($this->service, ["/rest/standardMerchant/update", "/rest/microMerchant/update"])) {
+        if (in_array($this->service, ["/rest/standardMerchant/update", "/rest/microMerchant/update"]) && !$files) {
             $tmp = [];
             foreach ($this->body as $k => $v) {
                 $tmp[] = [
