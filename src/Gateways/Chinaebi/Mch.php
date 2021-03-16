@@ -55,6 +55,26 @@ class Mch extends Chinaebi
     }
 
     /**
+     * 微信特约商户关注配置
+     * @param array $opition
+     * @return array|mixed
+     * @throws GatewayException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function watchConfig(array $opition)
+    {
+        $this->service = "/rest/weChatMerchantConfig/watchConfig";
+        $this->setReqData([
+            'orgNumber' => $this->userConfig->get('org_id'),//机构代码
+            'dyMchNo' => $this->userConfig->get('merc_id'),//电银商户号
+            'subAppId' => $opition['subAppId'] ?? '',//关联 APPID
+            'subScribeAppId' => $opition['subScribeAppId'] ?? '',//特约商户或渠道的公众号 APPID（与receiptAppId 互斥且必填一个）
+            'receiptAppId' => $opition['receiptAppId'] ?? '',//需为通过微信认证的小程序 APPID，且认证主体与渠道商或子商户一致（与 subScribeAppId 互斥且必填一个）
+        ]);
+        return $this->getResult();
+    }
+
+    /**
      * 微信特约商户配置查询
      * @return array|mixed
      */
