@@ -17,9 +17,8 @@ $payConfig = [
     'merc_id' => '',  // 商户号
 ];
 
-$pay = new Pay(['chinaebi' => $payConfig]);
-
-$opition['trancde'] = 'P05';
+// 电银
+$opition['trancde'] = 'P05'; // 支付宝动态码
 $opition['title'] = '测试支付';
 $opition['notify_url'] = "https://www.xxx.com//pay_notify_url";  // 回调地址
 $opition['pay_amount'] = 100;
