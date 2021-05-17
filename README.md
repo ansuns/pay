@@ -5,7 +5,7 @@
 主要是以服务商模式进件，支付...
 
 #### 安装教程
-使用Composer安装：composer require ansuns/pay dev-master
+使用Composer安装：composer require ansuns/pay
 
 ```php
 use Ansuns\Pay\Pay;
