@@ -84,7 +84,7 @@ abstract class Suixingfu extends GatewayInterface
      * @param array $array
      * @return $this
      */
-    protected function setReqData($array)
+    protected function setReqData(array $array)
     {
         $this->config['reqData'] += $array;
         return $this;
@@ -175,7 +175,7 @@ abstract class Suixingfu extends GatewayInterface
      * @return array
      * @throws GatewayException
      */
-    public function refund_find($out_trade_no = '')
+    public function refund_find(string $out_trade_no = '')
     {
         $this->service = "/qr/tradeRefundQuery";
         $this->setReqData(['ordNo' => $out_trade_no]);

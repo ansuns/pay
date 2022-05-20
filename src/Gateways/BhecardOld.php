@@ -134,7 +134,8 @@ abstract class BhecardOld extends GatewayInterface
         return $response_data;
     }
 
-    protected function doData($return_data){
+    protected function doData($return_data)
+    {
         $service_return_name = str_replace(".", "_", $this->service) . '_response';
         $resultOrigin = json_decode($return_data, true);
 

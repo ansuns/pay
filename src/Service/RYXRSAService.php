@@ -19,9 +19,9 @@ class RYXRSAService
     }
 
     /**
-     * @uses 获取文件内容
      * @param $file_path string
      * @return bool|string
+     * @uses 获取文件内容
      */
     private function _getContents($file_path)
     {
@@ -30,8 +30,8 @@ class RYXRSAService
     }
 
     /**
-     * @uses 获取私钥
      * @return bool|resource
+     * @uses 获取私钥
      */
     private function _getPrivateKey()
     {
@@ -40,8 +40,8 @@ class RYXRSAService
     }
 
     /**
-     * @uses 获取公钥
      * @return bool|resource
+     * @uses 获取公钥
      */
     private function _getPublicKey()
     {
@@ -50,9 +50,9 @@ class RYXRSAService
     }
 
     /**
-     * @uses 私钥加密
      * @param string $data
      * @return null|string
+     * @uses 私钥加密
      */
     public function privEncrypt($data = '')
     {
@@ -63,9 +63,9 @@ class RYXRSAService
     }
 
     /**
-     * @uses 公钥加密
      * @param string $data
      * @return null|string
+     * @uses 公钥加密
      */
     public function publicEncrypt($data = '')
     {
@@ -76,9 +76,9 @@ class RYXRSAService
     }
 
     /**
-     * @uses 私钥解密
      * @param string $encrypted
      * @return null
+     * @uses 私钥解密
      */
     public function privDecrypt($encrypted = '')
     {
@@ -89,9 +89,9 @@ class RYXRSAService
     }
 
     /**
-     * @uses 公钥解密
      * @param string $encrypted
      * @return null
+     * @uses 公钥解密
      */
     public function publicDecrypt($encrypted = '')
     {

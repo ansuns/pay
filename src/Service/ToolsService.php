@@ -855,10 +855,10 @@ class ToolsService
 
     public static function formatTree(
         array $array,
-        $parent_guid = null,
-        $id = 'guid',
-        $parentId = 'parent_guid',
-        $keyChildrens = 'sub'
+              $parent_guid = null,
+              $id = 'guid',
+              $parentId = 'parent_guid',
+              $keyChildrens = 'sub'
     )
     {
         $parent_guid = $parent_guid ?: self::get_empty_guid();
@@ -1036,7 +1036,7 @@ class ToolsService
             $tree[] = $_tree;
             if (!empty($sub)) {
                 $sub_array = self::arr2table($sub, $id, $pid, $path, $_tree[$path]);
-                $tree = array_merge($tree, (Array)$sub_array);
+                $tree = array_merge($tree, (array)$sub_array);
             }
         }
         return $tree;

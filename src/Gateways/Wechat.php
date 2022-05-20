@@ -230,7 +230,7 @@ abstract class Wechat extends GatewayInterface
      * @return array
      * @throws GatewayException
      */
-    protected function preOrder($options = [])
+    protected function preOrder(array $options = [])
     {
         $this->config = array_merge($this->config, $options);
         return $this->getResult($this->gateway);
@@ -243,7 +243,7 @@ abstract class Wechat extends GatewayInterface
      * @return array
      * @throws GatewayException
      */
-    protected function getResult($url, $cert = false)
+    protected function getResult(string $url, bool $cert = false)
     {
         $this->config['sign'] = $this->getSign($this->config);
         if ($cert) {
@@ -287,10 +287,10 @@ abstract class Wechat extends GatewayInterface
 
     /**
      * 判断结果是否成功
-     * @param $result
+     * @param array $result
      * @return bool
      */
-    protected function isSuccess($result)
+    protected function isSuccess(array $result)
     {
         if (!is_array($result)) {
             return false;
@@ -300,17 +300,17 @@ abstract class Wechat extends GatewayInterface
 
     /**
      * 生成内容签名
-     * @param $data
-     * @param $encrypt_method
+     * @param array $data
+     * @param string $encrypt_method
      * @return string
      */
-    protected function getSign($data, $encrypt_method = 'MD5')
+    protected function getSign(array $data, string $encrypt_method = 'MD5')
     {
         if (is_null($this->userConfig->get('mch_key'))) {
             throw new InvalidArgumentException('Missing Config -- [mch_key]');
         }
         ksort($data);
-        $encrypt_method = isset($this->config['sign_type']) ? $this->config['sign_type'] : $encrypt_method;
+        $encrypt_method = $this->config['sign_type'] ?? $encrypt_method;
         switch (strtoupper($encrypt_method)) {
             case 'MD5':
                 $string = md5($this->getSignContent($data) . '&key=' . $this->userConfig->get('mch_key'));
@@ -343,7 +343,7 @@ abstract class Wechat extends GatewayInterface
      * @param int $length
      * @return string
      */
-    protected function createNonceStr($length = 16)
+    protected function createNonceStr(int $length = 16)
     {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $str = '';
@@ -358,7 +358,7 @@ abstract class Wechat extends GatewayInterface
      * @param array $data 源数据
      * @return string
      */
-    protected function toXml($data)
+    protected function toXml(array $data)
     {
         if (!is_array($data) || count($data) <= 0) {
             throw new InvalidArgumentException('convert to xml error !invalid array!');
@@ -376,7 +376,7 @@ abstract class Wechat extends GatewayInterface
      * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
      * @return mixed
      */
-    protected function get_client_ip($type = 0)
+    protected function get_client_ip(int $type = 0)
     {
         $type = $type ? 1 : 0;
         static $ip = NULL;
@@ -528,7 +528,7 @@ abstract class Wechat extends GatewayInterface
      * @param string $return_msg 错误信息
      * @return string
      */
-    public function getNotifyFailedReply($return_msg = '')
+    public function getNotifyFailedReply(string $return_msg = '')
     {
         return $this->toXml(['return_code' => 'FAIL', 'return_msg' => 'FAIL:' . $return_msg]);
     }

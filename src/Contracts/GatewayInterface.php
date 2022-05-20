@@ -47,21 +47,23 @@ abstract class GatewayInterface
      */
     abstract public function verify($data, $sign = null, $sync = false);
 
+
     /**
      * 网络模拟请求
-     * @param $url 网络请求URL
-     * @param $data
+     * @param string $url
+     * @param array $data
      * @param array $options 请求数据
-     * @return array|bool
+     * @return array|false|mixed|string
      * @throws \Exception
      */
-    public function post($url, $data, $options = [])
+    public function post(string $url, array $data, array $options = [])
     {
         return \Ansuns\Pay\Service\HttpService::get_instance()->post($url, $data, $options)->get_body();
     }
 
 
     /**
+     * curl get
      * @param $url
      * @param array $data
      * @return array|bool
@@ -71,6 +73,11 @@ abstract class GatewayInterface
         return \Ansuns\Pay\Service\HttpService::get_instance()->get($url, $data)->get_body();
     }
 
+    /**
+     * 成功返回
+     * @param $data
+     * @return array
+     */
     protected function successReturn($data)
     {
         $response_data['return_code'] = 'SUCCESS'; // 通信：数据能解析则通信结果认为成功
@@ -82,6 +89,11 @@ abstract class GatewayInterface
         return $response_data;
     }
 
+    /**
+     * 失败返回
+     * @param $data
+     * @return array
+     */
     protected function failedReturn($data)
     {
         $response_data['return_code'] = 'SUCCESS'; // 通信：数据能解析则通信结果认为成功

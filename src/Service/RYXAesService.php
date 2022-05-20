@@ -7,7 +7,6 @@ namespace Ansuns\Pay\Service;
  * Class RYXAesService
  * @package Ansuns\Pay\Service
  */
-
 class RYXAesService
 {
 

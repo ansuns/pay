@@ -26,7 +26,7 @@ class HttpService
      * @param array $options
      * @return bool|string
      */
-    public static function get($url, $query = [], $options = [])
+    public static function get(string $url, array $query = [], array $options = [])
     {
         $options['query'] = $query;
         return self::request('get', $url, $options);
@@ -39,7 +39,7 @@ class HttpService
      * @param array $options
      * @return bool|string
      */
-    public static function post($url, $data = [], $options = [])
+    public static function post(string $url, array $data = [], array $options = [])
     {
         $options['data'] = $data;
         return self::request('post', $url, $options);
@@ -52,7 +52,7 @@ class HttpService
      * @param array $options 请求参数[headers,data,ssl_cer,ssl_key]
      * @return bool|string
      */
-    protected static function request($method, $url, $options = [])
+    protected static function request(string $method, string $url, array $options = [])
     {
         $method = strtolower($method);
         $curl = curl();
@@ -91,7 +91,7 @@ class HttpService
      * @param array $options 请求参数[headers,data,ssl_cer,ssl_key]
      * @return bool|string
      */
-    protected static function requests($method, $url, $options = [])
+    protected static function requests(string $method, string $url, array $options = [])
     {
         $curl = curl_init();
         // GET参数设置
@@ -139,7 +139,7 @@ class HttpService
      * @param array $data
      * @return array
      */
-    private static function build($data)
+    private static function build(array $data)
     {
         if (!is_array($data)) {
             return $data;
@@ -162,7 +162,7 @@ class HttpService
      * @param int $expired 缓存时间(0表示永久缓存)
      * @throws Exception
      */
-    public static function setCache($name, $value = '', $expired = 3600)
+    public static function setCache(string $name, string $value = '', int $expired = 3600)
     {
         return cache($name, $value, $expired);
         $cache_file = self::getCacheName($name);
