@@ -1,4 +1,4 @@
-[English](https://github.com/ansuns/pay/blob/master/README.en.md) | 简体中文
+English | [简体中文](./README.md)
 
 # 三方支付聚合
 
