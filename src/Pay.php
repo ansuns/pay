@@ -28,12 +28,9 @@ class Pay
     private $gateways;
 
 
-    protected static $instance = null;
-    public $driver;
     public $class;
     public $scene;
     public $pay_parameter = null;
-    protected $debug;
 
     /**
      * Pay constructor.

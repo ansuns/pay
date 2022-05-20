@@ -24,8 +24,9 @@ class ToolsService
 
     /**
      * 单例化对象
+     * @return ToolsService|null
      */
-    public static function get_instance()
+    public static function getInstance()
     {
         //单例方法,用于访问实例的公共的静态方法
         if (is_null(self::$instance) || !isset(self::$instance)) {
@@ -1757,7 +1758,7 @@ class ToolsService
 
     /**
      * XML数据转换成array数组
-     * @param string $xml
+     * @param $xml
      * @return array
      */
     public static function xmlToArray($xml)

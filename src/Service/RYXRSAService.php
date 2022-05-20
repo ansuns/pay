@@ -2,6 +2,9 @@
 
 namespace Ansuns\Pay\Service;
 
+/**
+ * 瑞银信rsa
+ */
 class RYXRSAService
 {
     private $_config = [

@@ -39,7 +39,6 @@ class HttpService
     public $errmsg = '';
     public $method = '';
     public $data = '';
-    public $request_used_time = 0;
     public $request_cookies = '';
     public $return_cookies = '';
     public $ignore_log = false;

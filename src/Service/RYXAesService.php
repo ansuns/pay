@@ -3,7 +3,7 @@
 namespace Ansuns\Pay\Service;
 
 /**
- *  Aes 对称加密
+ *  瑞银信Aes 对称加密
  * Class RYXAesService
  * @package Ansuns\Pay\Service
  */

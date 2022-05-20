@@ -11,7 +11,6 @@ class AesService
 {
 
     //如果是AES-128-CBC长度的必须是16位，AES-192-CBC 必须为32位 ，AES-256-CBC必须位64位
-
     protected static $iv = '1234123412341234';
 
     //可以任意长度，貌似超过64会被截取，尚未验证
@@ -50,8 +49,6 @@ class AesService
 
         return base64_encode($encryptedData);
     }
-
-    //手动填充（补位）
 
     /**
      * 加密后对称密钥
