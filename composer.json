@@ -12,15 +12,15 @@
     "联富通"
   ],
   "require": {
-    "php": "^7.2",
+    "php": "^7.4",
     "guzzlehttp/guzzle": "^6.3|^7.0"
   },
   "homepage": "https://github.com/ansuns/pay",
   "license": "MIT",
   "authors": [
     {
-      "name": "阿深",
-      "email": "251024883@qq.com"
+      "name": "ansuns",
+      "email": "cyzkey@gmail.com"
     }
   ],
   "minimum-stability": "dev",
