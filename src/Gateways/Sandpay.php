@@ -10,9 +10,9 @@ use Ansuns\Pay\Service\HttpService;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
- * 微信支付基础类
+ * 杉德支付基础类
  * Class Wechat
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Sandpay
  */
 abstract class Sandpay extends GatewayInterface
 {
@@ -68,7 +68,7 @@ abstract class Sandpay extends GatewayInterface
     protected $gateway_upload = 'https://hmpay.sandpay.com.cn/agent-api/api/upload/pic';
 
     /**
-     * Wechat constructor.
+     * SandPay constructor.
      * @param array $config
      * @throws \Exception
      */
@@ -381,7 +381,7 @@ abstract class Sandpay extends GatewayInterface
     }
 
     /**
-     * 获取微信支付成功通知回复内容
+     * 获取杉德支付成功通知回复内容
      * @return string
      */
     public function getNotifySuccessReply()
@@ -399,7 +399,7 @@ abstract class Sandpay extends GatewayInterface
     }
 
     /**
-     * 获取微信支付通知
+     * 获取杉德支付通知
      * @return array
      * @throws \Exception
      */

@@ -11,9 +11,9 @@ use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\ToolsService;
 
 /**
- * 微信支付基础类
- * Class Wechat
- * @package Pay\Gateways\Wechat
+ * 传化支付基础类
+ * Class Chuanhua
+ * @package Pay\Gateways\Chuanhua
  */
 abstract class Chuanhua extends GatewayInterface
 {
@@ -37,7 +37,7 @@ abstract class Chuanhua extends GatewayInterface
     protected $gateway = 'https://newretail.tf56pay.com/newRetail';
 
     /**
-     * Wechat constructor.
+     * Chuanhua constructor.
      * @param array $config
      * @throws \Exception
      */
@@ -270,7 +270,7 @@ abstract class Chuanhua extends GatewayInterface
     }
 
     /**
-     * 获取微信支付成功通知回复内容
+     * 获取传化支付成功通知回复内容
      * @return string
      */
     public function getNotifySuccessReply()
@@ -288,7 +288,7 @@ abstract class Chuanhua extends GatewayInterface
     }
 
     /**
-     * 获取微信支付通知
+     * 获取传化支付通知
      * @return array
      * @throws \Exception
      */
