@@ -1,24 +1,25 @@
-# 三方支付
+# Third Party Payment
 
-整合微信服务商、支付包服务商、随行付、上海电银等三方服务商支付通道。
+Integrate payment channels of wechat service providers, Alipay service providers, accompanying payment,
+Shanghai e-bank and other third-party service providers.
 
-主要是以服务商模式进件，实现多种方式支付（二维码，条码，刷脸，小程序，公众号，H5支付）。
-## 快速入门
+The products are mainly imported in the service provider mode to realize multiple payment methods
+(QR code, bar code, face brush, applet, official account, H5 payment).
+## Getting Started
 
-首先说明，该SDK主要是为在中国大陆开展支付业务提供服务的，请确保你开展业务是否满足不同第三方支付服务商的合作条件，确保你以及商户的资金安全。
+First of all, the SDK is mainly used to provide services for carrying out payment business in Chinese Mainland. Please ensure that your business meets the cooperation conditions of different third-party payment service providers, and ensure the capital security of you and merchants.
 
-同时请确保你的商户进件时，提供的资料是合法的，正确的。
+At the same time, please ensure that the information provided by your merchant is legal and correct.
 
-其他请结合个人或公司的自身条件决定是否使用该SDK
+For others, please decide whether to use the SDK in combination with the personal or company's own conditions
 
-当你决定使用时，那么请借着往下看吧
+When you decide to use it, please look down
+### Prerequisites
 
-### 先决条件
 
 PHP > 5.6
 
 Composer
-
 ```
 [ansuns@centos-devfull ~]# php -v
 PHP 7.1.33 (cli) (built: Mar 28 2022 17:37:07) ( NTS )
@@ -31,26 +32,27 @@ Composer version 1.10.26 2022-04-13 16:39:56
 
 ### Installing
 
-当你的软件环境符合要求后，那么可以安装了
+When your software environment meets the requirements, you can install it
+
 ```
 composer require ansuns/pay
 ```
-使用例子
+Use examples
 ```php
 use Ansuns\Pay\Pay;
 
 $payConfig = [
-    'org_id' => '', // 机构号
-    'public_key' => '',  // 代理商公钥
-    'private_key' => '',  // 代理商私钥
-    'merc_id' => '',  // 商户号
+    'org_id' => '', // org_id
+    'public_key' => '',  // agent public_key
+    'private_key' => '',  // agent public_key
+    'merc_id' => '',  // merchant_id
 ];
 
 $pay = new Pay(['chinaebi' => $payConfig]);
 
 $opition['trancde'] = 'P05';
-$opition['title'] = '测试支付';
-$opition['notify_url'] = "https://www.xxx.com/pay_notify_url";  // 回调地址
+$opition['title'] = 'test pay';
+$opition['notify_url'] = "https://www.xxx.com/pay_notify_url";  // callback url
 $opition['pay_amount'] = 100;
 $opition['mer_order_no'] = time();
 $pay = new Pay(['chinaebi' => $payConfig]);
@@ -58,16 +60,16 @@ $res = $pay->driver('chinaebi')->gateway('pos')->apply($opition);
 
 ```
 
-## 贡献
+## Contributing
 
-请阅读[contribution.md](https://gist.github.com/ansuns/b24679402957c63ec426)有关我们的行为准则以及向我们提交拉取请求的流程的详细信息。
+Please read [CONTRIBUTING.md](https://gist.github.com/ansuns/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 
 * **Ansuns** - *a unknow developer* - [HomePage](https://github.com/ansuns)
 
-另请参见 [贡献者] 列表 (https://github.com/ansuns/project/contributors) 谁参与了这个项目。
+See also the list of [contributors](https://github.com/ansuns/project/contributors) who participated in this project.
 
 ## License
 
-此项目是根据MIT许可证授权的-有关详细信息，请参阅[License.md]（License.md）文件
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details

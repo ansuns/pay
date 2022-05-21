@@ -1,9 +1,9 @@
 # Third Party Payment
 
-Integrate payment channels of wechat service providers, Alipay service providers, accompanying payment, 
+Integrate payment channels of wechat service providers, Alipay service providers, accompanying payment,
 Shanghai e-bank and other third-party service providers.
 
-The products are mainly imported in the service provider mode to realize multiple payment methods 
+The products are mainly imported in the service provider mode to realize multiple payment methods
 (QR code, bar code, face brush, applet, official account, H5 payment).
 ## Getting Started
 
