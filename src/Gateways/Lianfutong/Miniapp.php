@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\Lianfutong;
 /**
  * 微信小程序支付网关
  * Class MiniappGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Lianfutong
  */
 class Miniapp extends Lianfutong
 {
