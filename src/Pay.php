@@ -44,6 +44,11 @@ class Pay
         $this->config = new Config($config);
     }
 
+    /**
+     * @param $name
+     * @param $arguments
+     * @return false|mixed
+     */
     public function __call($name, $arguments)
     {
         $pays = $this->get_class();
@@ -60,6 +65,9 @@ class Pay
         return new self([ucfirst($this->class) => $pay_parameter]);
     }
 
+    /**
+     * @return null
+     */
     public function get_pay_parameter()
     {
         if ($this->pay_parameter) {
@@ -73,7 +81,7 @@ class Pay
      * @param string $driver
      * @return $this
      */
-    public function driver($driver)
+    public function driver(string $driver)
     {
         if (is_null($this->config->get($driver))) {
             throw new InvalidArgumentException("Driver [$driver]'s Config is not defined.");
@@ -88,7 +96,7 @@ class Pay
      * @param string $gateway
      * @return mixed
      */
-    public function gateway($gateway = 'web')
+    public function gateway(string $gateway = 'web')
     {
         if (!isset($this->drivers)) {
             throw new InvalidArgumentException('Driver is not defined.');
@@ -101,7 +109,7 @@ class Pay
      * @param string $gateway
      * @return mixed
      */
-    protected function createGateway($gateway)
+    protected function createGateway(string $gateway)
     {
         if (!file_exists(__DIR__ . '/Gateways/' . ucfirst($this->drivers) . '/' . ucfirst($gateway) . '.php')) {
             throw new InvalidArgumentException("Gateway [$gateway] is not supported.");

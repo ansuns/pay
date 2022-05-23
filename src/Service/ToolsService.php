@@ -1630,6 +1630,10 @@ class ToolsService
         return $decrypted;
     }
 
+    /**
+     * @param $cookies
+     * @return array
+     */
     public static function cookies_to_array($cookies)
     {
         $cookies_array = [];
@@ -1655,11 +1659,13 @@ class ToolsService
         return [date("Y-m-d H:i:s", strtotime($date_time[0])), date("Y-m-d 23:59:59", strtotime($date_time[1]))];
     }
 
-    /**压缩文件夹成压缩文件
+    /**
+     * 压缩文件夹成压缩文件
      * @param string $source
-     * @return string $destination
+     * @param $destination
+     * @return bool
      */
-    public static function zip($source, $destination)
+    public static function zip(string $source, $destination)
     {
         if (!extension_loaded('zip') || !file_exists($source)) {
             return false;
@@ -1701,7 +1707,6 @@ class ToolsService
     }
 
     /**
-     *
      * @return string
      */
     public static function createAccessMerchId()
@@ -1717,12 +1722,12 @@ class ToolsService
     }
 
     /**
-     * 数组转换成XML数据
+     *  数组转换成XML数据
      * @param array $array
      * @return string
-     * @throws WechatException
+     * @throws \Exception
      */
-    public static function arrayToXml($array)
+    public static function arrayToXml(array $array)
     {
         if (!is_array($array)) {
             throw new \Exception('`$arr`不是有效的array。');
@@ -1733,6 +1738,11 @@ class ToolsService
         return $xml;
     }
 
+    /**
+     * @param $array
+     * @return string
+     * @throws \Exception
+     */
     private static function arrayToXmlSub($array)
     {
         if (!is_array($array)) {
