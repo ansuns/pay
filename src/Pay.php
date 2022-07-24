@@ -51,7 +51,7 @@ class Pay
      */
     public function __call($name, $arguments)
     {
-        $pays = $this->get_class();
+        $pays = $this->getClass();
         return call_user_func_array([$pays->driver(ucfirst($this->class))->gateway(ucfirst($this->scene)), $name],
             $arguments);
     }
@@ -59,16 +59,16 @@ class Pay
     /**
      * @return Pay
      */
-    public function get_class()
+    public function getClass()
     {
-        $pay_parameter = $this->get_pay_parameter();
+        $pay_parameter = $this->getPayPrameter();
         return new self([ucfirst($this->class) => $pay_parameter]);
     }
 
     /**
      * @return null
      */
-    public function get_pay_parameter()
+    public function getPayPrameter()
     {
         if ($this->pay_parameter) {
             return $this->pay_parameter;
