@@ -395,7 +395,7 @@ class ToolsService
         return empty($arr) ? $name : $arr['str'];
     }
 
-    public static function array_iconv($data, $output = 'utf-8')
+    public static function arrayIconv($data, $output = 'utf-8')
     {
         try {
             $encode_arr = ['UTF-8', 'ASCII', 'GBK', 'GB2312', 'BIG5', 'JIS', 'eucjp-win', 'sjis-win', 'EUC-JP'];
@@ -404,9 +404,9 @@ class ToolsService
                 return mb_convert_encoding($data, $output, $encoded);
             } else {
                 foreach ($data as $key => $val) {
-                    $key = ToolsService::array_iconv($key, $output);
+                    $key = ToolsService::arrayIconv($key, $output);
                     if (is_array($val)) {
-                        $data[$key] = ToolsService::array_iconv($val, $output);
+                        $data[$key] = ToolsService::arrayIconv($val, $output);
                     } else {
                         $data[$key] = mb_convert_encoding($data, $output, $encoded);
                     }
@@ -1177,7 +1177,7 @@ class ToolsService
                         if (is_dir($dir . "/" . $file)) {
                             $files[$file] = self::scan_dir($dir . "/" . $file);
                         } else {
-                            $files[] = self::array_iconv($dir . "/" . $file);
+                            $files[] = self::arrayIconv($dir . "/" . $file);
                         }
                     }
                 }
