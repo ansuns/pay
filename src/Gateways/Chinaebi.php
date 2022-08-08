@@ -510,7 +510,7 @@ abstract class Chinaebi extends GatewayInterface
      * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
      * @return mixed
      */
-    protected function get_client_ip($type = 0)
+    protected function getClientIp($type = 0)
     {
         $type = $type ? 1 : 0;
         static $ip = NULL;
