@@ -56,7 +56,7 @@ class Facepay extends Chuanhua
                 'body' => $options['body'],
                 'store_id' => 'null',
                 'terminal_id' => 'null',
-                'client_ip' => ToolsService::get_client_ip(),
+                'client_ip' => ToolsService::getClientIp(),
                 'total_fee' => ToolsService::ncPriceFen2yuan($options['total_fee']),
             ]
         );

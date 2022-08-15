@@ -474,7 +474,7 @@ class HttpService
             return false;
         }
         $this->body = substr($this->get_response(), $this->request_info['header_size']);
-        return ToolsService::array_iconv($this->body);
+        return ToolsService::arrayIconv($this->body);
     }
 
     public function get_body_array()

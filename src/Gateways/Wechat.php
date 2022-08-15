@@ -141,7 +141,7 @@ abstract class Wechat extends GatewayInterface
             'sign_type' => 'MD5',
             'notify_url' => $this->userConfig->get('notify_url', ''),
             'trade_type' => $this->getTradeType(),
-            'spbill_create_ip' => $this->get_client_ip()
+            'spbill_create_ip' => $this->getClientIp()
         ];
         if ($this->userConfig->offsetExists('sub_appid')) {
             $this->config['sub_appid'] = $this->userConfig->get('sub_appid', '');
@@ -376,7 +376,7 @@ abstract class Wechat extends GatewayInterface
      * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
      * @return mixed
      */
-    protected function get_client_ip($type = 0)
+    protected function getClientIp($type = 0)
     {
         $type = $type ? 1 : 0;
         static $ip = NULL;

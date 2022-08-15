@@ -156,7 +156,7 @@ class ToolsService
      *            返回类型 0 返回IP地址 1 返回IPV4地址数字
      * @return mixed
      */
-    public static function get_client_ip($type = 0)
+    public static function getClientIp($type = 0)
     {
         $type = $type ? 1 : 0;
         static $ip = null;
@@ -186,7 +186,7 @@ class ToolsService
      * @param string $datetime
      * @return boolean
      **/
-    public static function is_expired($datetime)
+    public static function isExpired($datetime)
     {
         //时间大于2038年 不能直接用strtotime //http://www.jb51.net/article/117320.htm
         $datetime = new \DateTime($datetime);
@@ -369,7 +369,7 @@ class ToolsService
      * @param null $timestamp
      * @return false|string
      */
-    public static function format_timestamp($timestamp = null)
+    public static function formatTimestamp($timestamp = null)
     {
         $timestamp = $timestamp ?: time();
         return Date('Y-m-d H:i:s', $timestamp);
@@ -388,14 +388,14 @@ class ToolsService
         return $array;
     }
 
-    public static function unicode_to_utf8($name)
+    public static function unicodeToUtf8($name)
     {
         $json = '{"str":"' . $name . '"}';
         $arr = json_decode($json, true);
         return empty($arr) ? $name : $arr['str'];
     }
 
-    public static function array_iconv($data, $output = 'utf-8')
+    public static function arrayIconv($data, $output = 'utf-8')
     {
         try {
             $encode_arr = ['UTF-8', 'ASCII', 'GBK', 'GB2312', 'BIG5', 'JIS', 'eucjp-win', 'sjis-win', 'EUC-JP'];
@@ -404,9 +404,9 @@ class ToolsService
                 return mb_convert_encoding($data, $output, $encoded);
             } else {
                 foreach ($data as $key => $val) {
-                    $key = ToolsService::array_iconv($key, $output);
+                    $key = ToolsService::arrayIconv($key, $output);
                     if (is_array($val)) {
-                        $data[$key] = ToolsService::array_iconv($val, $output);
+                        $data[$key] = ToolsService::arrayIconv($val, $output);
                     } else {
                         $data[$key] = mb_convert_encoding($data, $output, $encoded);
                     }
@@ -1177,7 +1177,7 @@ class ToolsService
                         if (is_dir($dir . "/" . $file)) {
                             $files[$file] = self::scan_dir($dir . "/" . $file);
                         } else {
-                            $files[] = self::array_iconv($dir . "/" . $file);
+                            $files[] = self::arrayIconv($dir . "/" . $file);
                         }
                     }
                 }
@@ -1570,7 +1570,7 @@ class ToolsService
      * @param class int Y N 类名
      * @return array 本类的所有方法构成的一个数组
      */
-    public static function get_this_class_methods($class)
+    public static function getThisClassMethods($class)
     {
         $array1 = get_class_methods($class);
         if ($parent_class = get_parent_class($class)) {
@@ -1589,7 +1589,7 @@ class ToolsService
      * @return string
      * @throws \Exception
      */
-    public static function rsa_encode($data, $public_key)
+    public static function rsaEncode($data, $public_key)
     {
         if (empty($data)) {
             throw new \Exception('data参数不能为空');
@@ -1613,7 +1613,7 @@ class ToolsService
      * @return string
      * @throws \Exception
      */
-    public static function rsa_decode($data, $private_key)
+    public static function rsaDecode($data, $private_key)
     {
         if (empty($data)) {
             throw new \Exception('data参数不能为空');
@@ -1634,7 +1634,7 @@ class ToolsService
      * @param $cookies
      * @return array
      */
-    public static function cookies_to_array($cookies)
+    public static function cookiesToArray($cookies)
     {
         $cookies_array = [];
         $array = explode(';', $cookies);
@@ -1650,7 +1650,7 @@ class ToolsService
      * @param string $date_str
      * @return array
      */
-    public static function get_area_date(string $date_str = '')
+    public static function getAreaDate(string $date_str = '')
     {
         $date_time = explode(' - ', $date_str);
         if (!is_array($date_time)) {
