@@ -42,7 +42,7 @@ class ToolsService
      * @param bool $ucfirst 首字母是否大写（驼峰规则）
      * @return string
      */
-    public static function parse_name($name, $type = 0, $ucfirst = true)
+    public static function parseName($name, $type = 0, $ucfirst = true)
     {
         if ($type) {
             $name = preg_replace_callback('/_([a-zA-Z])/', function ($match) {
