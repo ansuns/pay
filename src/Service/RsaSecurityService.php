@@ -1,4 +1,5 @@
 <?php
+
 namespace Ansuns\Pay\Service;
 
 /**
@@ -93,8 +94,7 @@ class RsaSecurityService
             }
             $data = substr($data, $size);
         } while (strlen($data) > 0);
-        $str = join('', $des);
-        return $str;
+        return join('', $des);
     }
 
     /**
@@ -243,5 +243,3 @@ class RsaSecurityService
         @fclose($this->_pubKey);
     }
 }
-
-?>
