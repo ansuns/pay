@@ -24,10 +24,9 @@ class Pay
 
 
     protected static $instance = null;
-    public $driver;
     public $class;
     public $scene;
-    public $pay_parameter = null;
+    public $payParameter = null;
     protected $debug;
 
     /**
@@ -56,8 +55,8 @@ class Pay
      */
     public function getClass()
     {
-        $pay_parameter = $this->getPayPrameter();
-        return new self([ucfirst($this->class) => $pay_parameter]);
+        $payParameter = $this->getPayPrameter();
+        return new self([ucfirst($this->class) => $payParameter]);
     }
 
     /**
@@ -65,10 +64,7 @@ class Pay
      */
     public function getPayPrameter()
     {
-        if ($this->pay_parameter) {
-            return $this->pay_parameter;
-        }
-        return $this->pay_parameter;
+        return $this->payParameter;
     }
 
     /**
