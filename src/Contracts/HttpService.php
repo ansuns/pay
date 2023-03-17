@@ -165,11 +165,6 @@ class HttpService
     public static function setCache($name, $value = '', $expired = 3600)
     {
         return cache($name, $value, $expired);
-        $cache_file = self::getCacheName($name);
-        $content = serialize(['name' => $name, 'value' => $value, 'expired' => time() + intval($expired)]);
-        if (!file_put_contents($cache_file, $content)) {
-            throw new Exception('local cache error.', 500);
-        }
     }
 
     /**
@@ -180,15 +175,6 @@ class HttpService
     public static function getCache($name)
     {
         return cache($name);
-        $cache_file = self::getCacheName($name);
-        if (file_exists($cache_file) && ($content = file_get_contents($cache_file))) {
-            $data = unserialize($content);
-            if (isset($data['expired']) && (intval($data['expired']) === 0 || intval($data['expired']) >= time())) {
-                return $data['value'];
-            }
-            self::delCache($name);
-        }
-        return null;
     }
 
     /**
@@ -199,8 +185,6 @@ class HttpService
     public static function delCache($name)
     {
         return cache($name, null);
-        $cache_file = self::getCacheName($name);
-        return file_exists($cache_file) ? unlink($cache_file) : true;
     }
 
     /**
