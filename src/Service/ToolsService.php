@@ -1650,7 +1650,7 @@ class ToolsService
      * @param string $date_str
      * @return array
      */
-    public static function getAreaDate(string $date_str = '')
+    public static function getAreaDate(string $date_str)
     {
         $date_time = explode(' - ', $date_str);
         if (!is_array($date_time)) {
