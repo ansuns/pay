@@ -5,10 +5,10 @@ namespace Ansuns\Pay\Gateways;
 use Ansuns\Pay\Contracts\Config;
 use Ansuns\Pay\Contracts\GatewayInterface;
 use Ansuns\Pay\Contracts\HttpService;
-use Ansuns\Pay\Exceptions\Exception;
 use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Exceptions\InvalidArgumentException;
 use Ansuns\Pay\Service\ToolsService;
+use Exception;
 
 /**
  * 微信支付基础类
@@ -37,9 +37,8 @@ abstract class Chuanhua extends GatewayInterface
     protected $gateway = 'https://newretail.tf56pay.com/newRetail';
 
     /**
-     * Wechat constructor.
      * @param array $config
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(array $config)
     {
@@ -215,7 +214,7 @@ abstract class Chuanhua extends GatewayInterface
 
     protected function buildPayResult($data, $options = [])
     {
-        $return = [
+        return [
             'return_code' => $data['return_code'], //通信结果
             'return_msg' => $data['return_msg'],
             'result_code' => $data['result_code'],
@@ -237,7 +236,6 @@ abstract class Chuanhua extends GatewayInterface
             'trade_state' => (isset($data['trade_status']) && $data['trade_status'] == 1) ? 'SUCCESS' : 'PAYERROR',
             'raw_data' => $data
         ];
-        return $return;
     }
 
     /**
@@ -290,7 +288,7 @@ abstract class Chuanhua extends GatewayInterface
     /**
      * 获取微信支付通知
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getNotify()
     {
@@ -300,8 +298,7 @@ abstract class Chuanhua extends GatewayInterface
             unset($data['sign']);
             $local_sign = $this->getSign($data);
             if ($local_sign !== $sign) {
-                wr_log('sign is not match:local_sign:' . $local_sign . ',get_sign:' . $sign, 1);
-                throw new \Exception('Invalid Notify Sign is error.', '0');
+                throw new Exception('Invalid Notify Sign is error.', '0');
             }
             $return = [
                 'return_code' => 'SUCCESS', //通信结果
