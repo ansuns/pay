@@ -2,6 +2,7 @@
 
 namespace Ansuns\Pay\Service;
 
+use Exception;
 
 class ToolsService
 {
@@ -99,7 +100,6 @@ class ToolsService
      * @param array $ext 文件后缀
      * @param array $mine 文件后缀MINE信息
      * @return string
-     * @throws LocalCacheException
      */
     public static function getExtMine($ext, $mine = [])
     {
@@ -113,7 +113,6 @@ class ToolsService
     /**
      * 获取所有文件扩展的mine
      * @return array
-     * @throws LocalCacheException
      */
     private static function getMines()
     {
@@ -136,8 +135,6 @@ class ToolsService
      * @param $filename
      * @param string $mimetype
      * @param string $postname
-     * @return \CURLFile|string
-     * @throws LocalCacheException
      */
     public static function createCurlFile($filename, $mimetype = null, $postname = null)
     {
@@ -185,7 +182,8 @@ class ToolsService
      * 判断时间是否过期
      * @param string $datetime
      * @return boolean
-     **/
+     * @throws Exception
+     */
     public static function isExpired($datetime)
     {
         //时间大于2038年 不能直接用strtotime //http://www.jb51.net/article/117320.htm
@@ -231,7 +229,7 @@ class ToolsService
             } else {
                 return (json_decode(json_encode(simplexml_load_string($str)), true));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -252,7 +250,7 @@ class ToolsService
                 json_decode(self::arr2json(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
             libxml_disable_entity_loader($disableEntities);
             return $result;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }
@@ -296,7 +294,7 @@ class ToolsService
      *
      * @param [type] $str
      *            [description]
-     * @return [type] [description]
+     * @return array|string|string[] [type] [description]
      * @author xieyongfa<xieyongfa@ecarde.cn>
      * @dateTime 2016-05-17T10:29:46+0800
      */
@@ -413,7 +411,7 @@ class ToolsService
                 }
                 return $data;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $data;
         }
     }
@@ -611,7 +609,7 @@ class ToolsService
                 return false;
             }
             return is_array(json_decode($json_str, true));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -739,7 +737,7 @@ class ToolsService
      * @param $n2 第二个数
      * @param string $scale 精度 默认为小数点后两位
      * @return  string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function ncPriceCalculate($n1, $symbol, $n2, $scale = '2')
     {
@@ -854,10 +852,10 @@ class ToolsService
 
     public static function formatTree(
         array $array,
-        $parent_guid = null,
-        $id = 'guid',
-        $parentId = 'parent_guid',
-        $keyChildrens = 'sub'
+              $parent_guid = null,
+              $id = 'guid',
+              $parentId = 'parent_guid',
+              $keyChildrens = 'sub'
     )
     {
         $parent_guid = $parent_guid ?: self::get_empty_guid();
@@ -1035,7 +1033,7 @@ class ToolsService
             $tree[] = $_tree;
             if (!empty($sub)) {
                 $sub_array = self::arr2table($sub, $id, $pid, $path, $_tree[$path]);
-                $tree = array_merge($tree, (Array)$sub_array);
+                $tree = array_merge($tree, (array)$sub_array);
             }
         }
         return $tree;
@@ -1473,12 +1471,12 @@ class ToolsService
      * @param array $data
      * @param string $key
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getSign($data, $key)
     {
         if (is_null($key)) {
-            throw new \Exception('getSign Failed Missing Parameter -- [key]');
+            throw new Exception('getSign Failed Missing Parameter -- [key]');
         }
         ksort($data);
         $string = md5(self::getSignContent($data) . '&key=' . $key);
@@ -1490,7 +1488,7 @@ class ToolsService
      * @param string $password
      * @param string|mixed $cost
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function generatePasswordHash($password, $cost = null)
     {
@@ -1505,7 +1503,7 @@ class ToolsService
      * @param string $password
      * @param string $hash
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function validatePasswordHash($password, $hash)
     {
@@ -1587,21 +1585,21 @@ class ToolsService
      * @param string $data
      * @param string $public_key
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function rsaEncode($data, $public_key)
     {
         if (empty($data)) {
-            throw new \Exception('data参数不能为空');
+            throw new Exception('data参数不能为空');
         }
         //公钥加密
         $public_key = openssl_pkey_get_public($public_key);
         if (!$public_key) {
-            throw new \Exception('公钥不可用');
+            throw new Exception('公钥不可用');
         }
         $return_en = openssl_public_encrypt($data, $crypted, $public_key);
         if (!$return_en) {
-            throw new \Exception('加密失败,请检查RSA秘钥');
+            throw new Exception('加密失败,请检查RSA秘钥');
         }
         return base64_encode($crypted);
     }
@@ -1611,21 +1609,21 @@ class ToolsService
      * @param string $data
      * @param string $private_key
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function rsaDecode($data, $private_key)
     {
         if (empty($data)) {
-            throw new \Exception('data参数不能为空');
+            throw new Exception('data参数不能为空');
         }
         //私钥解密
         $private_key = openssl_pkey_get_private($private_key);
         if (!$private_key) {
-            throw new \Exception('私钥不可用');
+            throw new Exception('私钥不可用');
         }
         $return_de = openssl_private_decrypt(base64_decode($data), $decrypted, $private_key);
         if (!$return_de) {
-            throw new \Exception('解密失败,请检查RSA秘钥');
+            throw new Exception('解密失败,请检查RSA秘钥');
         }
         return $decrypted;
     }
@@ -1725,12 +1723,12 @@ class ToolsService
      *  数组转换成XML数据
      * @param array $array
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function arrayToXml(array $array)
     {
         if (!is_array($array)) {
-            throw new \Exception('`$arr`不是有效的array。');
+            throw new Exception('`$arr`不是有效的array。');
         }
         $xml = "<xml>\r\n";
         $xml .= self::arrayToXmlSub($array);
@@ -1741,12 +1739,12 @@ class ToolsService
     /**
      * @param $array
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     private static function arrayToXmlSub($array)
     {
         if (!is_array($array)) {
-            throw new \Exception('`$array`不是有效的array。');
+            throw new Exception('`$array`不是有效的array。');
         }
         $xml = "";
         foreach ($array as $key => $val) {
