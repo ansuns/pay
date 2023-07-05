@@ -7,11 +7,6 @@ use Ansuns\Pay\Exceptions\Exception;
 /**
  * HTTP请求封装
  *
- * Class HttpService
- * @library HttpService
- * @author XieYongFa<215005377@qq.com>
- * @date 2018/11/03 18:00:00
- *
  * @method HttpService delete($url, $data = array()) public delete方法
  * @method HttpService put($url, $data = array()) public put方法
  * @method HttpService options($url, $data = array()) public options方法

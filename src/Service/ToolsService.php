@@ -291,12 +291,8 @@ class ToolsService
 
     /**
      * 替换字符串中间位置字符为星号
-     *
-     * @param [type] $str
-     *            [description]
-     * @return array|string|string[] [type] [description]
-     * @author xieyongfa<xieyongfa@ecarde.cn>
-     * @dateTime 2016-05-17T10:29:46+0800
+     * @param $str
+     * @return array|string|string[]
      */
     public static function replaceToStar($str)
     {
