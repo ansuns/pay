@@ -2,6 +2,7 @@
 
 namespace Ansuns\Pay\Gateways\Alipay;
 
+use Ansuns\Pay\Exceptions\GatewayException;
 use Ansuns\Pay\Gateways\Alipay;
 
 /**
@@ -42,7 +43,8 @@ class Auth extends Alipay
     /**
      * 应用并返回参数
      * @param array $options
-     * @return string
+     * @return array|bool
+     * @throws GatewayException
      */
     public function apply(array $options = [])
     {
@@ -52,7 +54,8 @@ class Auth extends Alipay
     /**
      * 应用并返回参数
      * @param array $options
-     * @return string
+     * @return array|bool
+     * @throws GatewayException
      */
     public function query(array $options = [])
     {
