@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\SandpayOnline;
 /**
  * 下载微信电子面单
  * Class BillGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Sandpay
  */
 class Bill extends SandpayOnline
 {

@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\Suixingfu;
 /**
  * 微信WAP网页支付网关
  * Class WapGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Suixingfu
  */
 class Wap extends Suixingfu
 {

@@ -9,7 +9,7 @@ use Ansuns\Pay\Service\ToolsService;
 /**
  * 微信POS刷卡支付网关
  * Class PosGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Suixingfu
  */
 class Pos extends Suixingfu
 {

@@ -9,7 +9,7 @@ use Ansuns\Pay\Service\ToolsService;
 /**
  * 微信公众号支付网关
  * Class MpGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Sandpay
  */
 class Mp extends SandpayOnline
 {

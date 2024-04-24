@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\Ruiyinxin;
 /**
  * 微信App支付网关
  * Class AppGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Ruiyinxin
  */
 class App extends Ruiyinxin
 {

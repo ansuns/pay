@@ -11,7 +11,7 @@ use Ansuns\Pay\Gateways\Suixingfu;
 /**
  * 商户配置
  * Class Mch
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Suixingfu
  */
 class Mch extends Suixingfu
 {

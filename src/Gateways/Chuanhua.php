@@ -11,9 +11,9 @@ use Ansuns\Pay\Service\ToolsService;
 use Exception;
 
 /**
- * 微信支付基础类
- * Class Wechat
- * @package Pay\Gateways\Wechat
+ *
+ * Class Chuanhua
+ * @package Pay\Gateways\Chuanhua
  */
 abstract class Chuanhua extends GatewayInterface
 {

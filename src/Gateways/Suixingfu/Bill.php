@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\Suixingfu;
 /**
  * 下载微信电子面单
  * Class BillGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Suixingfu
  */
 class Bill extends Suixingfu
 {

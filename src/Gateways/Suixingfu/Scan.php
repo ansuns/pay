@@ -8,7 +8,7 @@ use Ansuns\Pay\Gateways\Suixingfu;
 /**
  * 微信扫码支付网关
  * Class ScanGateway
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Suixingfu
  */
 class Scan extends Suixingfu
 {

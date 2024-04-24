@@ -17,7 +17,7 @@ use GuzzleHttp\Client;
 /**
  * 商户配置
  * Class Mch
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Ruiyinxin
  */
 class Mch extends Ruiyinxin
 {

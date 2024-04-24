@@ -12,7 +12,7 @@ use Ansuns\Pay\Service\ToolsService;
 /**
  * 商户配置
  * Class Mch
- * @package Pay\Gateways\Wechat
+ * @package Pay\Gateways\Sandpay
  */
 class Mch extends Sandpay
 {
